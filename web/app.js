@@ -266,6 +266,18 @@
     toastTimer = setTimeout(() => t.classList.add("hidden"), 2600);
   }
 
+  // 从 brew 等命令输出中提取真正有用的错误行（Error: …）
+  function extractErr(res) {
+    let msg = res.error || "未知错误";
+    if (res.output) {
+      const lines = res.output.split("\n").map((l) => l.trim()).filter(Boolean);
+      const errLine = lines.find((l) => l.includes("Error:"));
+      if (errLine) msg += " · " + errLine;
+      else if (lines.length) msg += " · " + lines[lines.length - 1];
+    }
+    return msg.length > 200 ? msg.slice(0, 197) + "…" : msg;
+  }
+
   async function rescan() {
     const btn = $("#refresh");
     btn.disabled = true;
@@ -325,8 +337,7 @@
         closeModal();
         await rescan();
       } else {
-        const errMsg = (res.error || "未知错误") + (res.output ? " · " + res.output.trim().split("\n").pop() : "");
-        toast("卸载失败: " + errMsg, false);
+        toast("卸载失败: " + extractErr(res), false);
       }
     } catch (err) {
       toast("卸载请求失败: " + err.message, false);
