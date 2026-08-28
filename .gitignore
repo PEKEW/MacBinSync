@@ -1,0 +1,6 @@
+# 编译产物
+/macsync
+*.exe
+
+# 本机数据
+.macsync/

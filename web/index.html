@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>macsync · 本机盘点</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="logo">⌘</span>
+    <div>
+      <h1>macsync</h1>
+      <span class="sub" id="machine-line">盘点中…</span>
+    </div>
+  </div>
+  <div class="actions">
+    <input id="filter" type="search" placeholder="过滤 brew / uv / 应用 / 配置…" autocomplete="off">
+    <button id="refresh" title="重新盘点">↻ 重新盘点</button>
+  </div>
+</header>
+
+<main id="content">
+  <div class="loading">正在加载盘点数据…</div>
+</main>
+
+<footer>macsync v0.1.0 · 数据来自本机 <code>~/.macsync/current.json</code></footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
