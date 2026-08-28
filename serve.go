@@ -58,6 +58,70 @@ func cmdServe(args []string) {
 		writeJSON(w, http.StatusOK, map[string]string{"ok": "true", "version": "0.1.0"})
 	})
 
+	// 同步队列：GET 查看，POST 加入
+	mux.HandleFunc("/api/queue", func(w http.ResponseWriter, r *http.Request) {
+		q := loadQueue()
+		if r.Method == http.MethodPost {
+			var req struct {
+				Source string `json:"source"`
+				Name   string `json:"name"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求体无效"})
+				return
+			}
+			if req.Source == "" || req.Name == "" {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "source 和 name 不能为空"})
+				return
+			}
+			q.add(req.Source, req.Name)
+			_ = saveQueue(q)
+		}
+		writeJSON(w, http.StatusOK, q)
+	})
+
+	// 从队列移除
+	mux.HandleFunc("/api/queue/remove", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "仅支持 POST"})
+			return
+		}
+		var req struct {
+			Source string `json:"source"`
+			Name   string `json:"name"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求体无效"})
+			return
+		}
+		q := loadQueue()
+		q.remove(req.Source, req.Name)
+		_ = saveQueue(q)
+		writeJSON(w, http.StatusOK, q)
+	})
+
+	// 卸载工具
+	mux.HandleFunc("/api/uninstall", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "仅支持 POST"})
+			return
+		}
+		var req struct {
+			Source string `json:"source"`
+			Name   string `json:"name"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求体无效"})
+			return
+		}
+		if req.Source == "" || req.Name == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "source 和 name 不能为空"})
+			return
+		}
+		res := runUninstall(req.Source, req.Name)
+		writeJSON(w, http.StatusOK, res)
+	})
+
 	addr := "127.0.0.1:" + strconv.Itoa(port)
 	fmt.Printf("macsync Web 界面已启动 → http://%s\n", addr)
 	fmt.Println("按 Ctrl+C 停止。")

@@ -17,6 +17,7 @@
   </div>
   <div class="actions">
     <input id="filter" type="search" placeholder="过滤 brew / uv / 应用 / 配置…" autocomplete="off">
+    <button id="queue-btn" title="查看同步队列">同步队列 <span id="queue-count" class="badge">0</span></button>
     <button id="refresh" title="重新盘点">↻ 重新盘点</button>
   </div>
 </header>
@@ -24,6 +25,21 @@
 <main id="content">
   <div class="loading">正在加载盘点数据…</div>
 </main>
+
+<!-- 操作弹窗：点击任意工具行触发 -->
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body" class="modal-body"></div>
+    <div class="modal-actions">
+      <button id="modal-cancel" class="ghost">取消</button>
+      <button id="modal-queue" class="primary">进入同步队列</button>
+      <button id="modal-uninstall" class="danger hidden">卸载</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
 
 <footer>macsync v0.1.0 · 数据来自本机 <code>~/.macsync/current.json</code></footer>
 
