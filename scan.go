@@ -15,19 +15,43 @@ func emptyIfNil[T any](s []T) []T {
 	return s
 }
 
+// scanStep 一次进度通知：某采集步骤开始(done=false)或完成(done=true)。
+type scanStep struct {
+	step  int           // 从 0 开始
+	total int           // 总步骤数
+	name  string        // 步骤名
+	done  bool          // 是否已完成
+	ms    time.Duration // 本步骤耗时（done=true 时有效）
+}
+
 // collectReport 汇总所有采集器，生成一份完整盘点报告。
-func collectReport() Report {
-	r := Report{
-		Machine:     collectMachine(),
-		Brew:        collectBrew(),
-		Uv:          collectUv(),
-		Runtimes:    collectRuntimes(),
-		Cargo:       collectCargo(),
-		LocalBin:    collectLocalBin(),
-		Apps:        collectApps(),
-		Configs:     collectConfigs(),
-		GeneratedAt: time.Now(),
+// progress 可为 nil（如服务端后台盘点时不输出）。
+func collectReport(progress func(scanStep)) Report {
+	r := Report{}
+	steps := []struct {
+		name string
+		fn   func()
+	}{
+		{"系统信息", func() { r.Machine = collectMachine() }},
+		{"Homebrew", func() { r.Brew = collectBrew() }},
+		{"uv 工具", func() { r.Uv = collectUv() }},
+		{"运行时", func() { r.Runtimes = collectRuntimes() }},
+		{"Cargo 二进制", func() { r.Cargo = collectCargo() }},
+		{"~/.local/bin", func() { r.LocalBin = collectLocalBin() }},
+		{"GUI 应用", func() { r.Apps = collectApps() }},
+		{"配置文件", func() { r.Configs = collectConfigs() }},
 	}
+	for i, s := range steps {
+		if progress != nil {
+			progress(scanStep{step: i, total: len(steps), name: s.name})
+		}
+		start := time.Now()
+		s.fn()
+		if progress != nil {
+			progress(scanStep{step: i, total: len(steps), name: s.name, done: true, ms: time.Since(start)})
+		}
+	}
+	r.GeneratedAt = time.Now()
 	r.Brew.Formulae = emptyIfNil(r.Brew.Formulae)
 	r.Brew.Casks = emptyIfNil(r.Brew.Casks)
 	r.Brew.Taps = emptyIfNil(r.Brew.Taps)
@@ -45,8 +69,9 @@ func collectReport() Report {
 }
 
 // runScan 执行盘点并写入 out（同时写入 dataDir/reports/<hostname>.json 快照）。
-func runScan(out string) (Report, error) {
-	rep := collectReport()
+// progress 透传给 collectReport。
+func runScan(out string, progress func(scanStep)) (Report, error) {
+	rep := collectReport(progress)
 	data, err := json.MarshalIndent(rep, "", "  ")
 	if err != nil {
 		return rep, err

@@ -30,7 +30,7 @@ func cmdServe(args []string) {
 	current := currentReportPath()
 	if _, err := os.Stat(current); os.IsNotExist(err) {
 		fmt.Println("首次运行，正在盘点本机…")
-		if _, err := runScan(current); err != nil {
+		if _, err := runScan(current, nil); err != nil {
 			fmt.Fprintln(os.Stderr, "盘点失败:", err)
 			os.Exit(1)
 		}
@@ -42,7 +42,7 @@ func cmdServe(args []string) {
 	mux.HandleFunc("/api/report", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		if r.Method == http.MethodPost {
-			if _, err := runScan(current); err != nil {
+			if _, err := runScan(current, nil); err != nil {
 				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				return
 			}

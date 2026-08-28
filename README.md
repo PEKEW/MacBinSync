@@ -34,6 +34,18 @@ cd ~/macsync
 ### ✅ 已完成：M0 盘点 CLI
 `macsync scan` 采集 8 类数据，输出 JSON 报告：
 
+```
+正在盘点 PeikedeMac-mini.local …
+  [1/8] ✓ 系统信息 (28ms)
+  [2/8] ✓ Homebrew (15.1s)      ← 最慢，含 leaves/outdated 检查
+  [3/8] ✓ uv 工具 (71ms)
+  ...
+扫描完成 → ~/.macsync/current.json（总耗时 16.9s）
+```
+
+- **实时进度**：终端下逐行原地刷新（`…` → `✓ 完成 (耗时)`），管道/重定向时退化为普通行（`isTTY()` 自动判断）
+- 每步耗时、总耗时一目了然（最慢通常是 Homebrew 的 `brew outdated` 网络检查）
+
 | 采集器 | 数据来源 | 说明 |
 |---|---|---|
 | 系统信息 | `sw_vers` / `uname -m` / `hostname` / `$SHELL` | 主机名、macOS 版本、芯片、Home、brew 前缀 |
