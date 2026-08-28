@@ -1,17 +1,106 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"syscall"
+	"time"
 )
 
 //go:embed web
 var webFS embed.FS
+
+// ---------- 端口占用检测 ----------
+
+// procInfo 占用端口的进程信息。
+type procInfo struct {
+	pid     int
+	command string
+}
+
+// portProcs 通过 lsof 查找监听指定 TCP 端口的进程。
+func portProcs(port int) []procInfo {
+	lsof := findExec("lsof")
+	if lsof == "" {
+		lsof = "/usr/sbin/lsof"
+	}
+	out, err := runCmd(context.Background(), lsof, "-nP", "-iTCP:"+strconv.Itoa(port), "-sTCP:LISTEN")
+	if err != nil {
+		return nil
+	}
+	lines := strings.Split(out, "\n")
+	var procs []procInfo
+	for _, line := range lines[1:] { // 跳过表头
+		f := strings.Fields(line)
+		if len(f) < 2 {
+			continue
+		}
+		if pid, err := strconv.Atoi(f[1]); err == nil {
+			// lsof 第一列就是 COMMAND，直接可用；ps 只用来补全完整命令行
+			procs = append(procs, procInfo{pid: pid, command: f[0]})
+		}
+	}
+	for i := range procs {
+		if out, err := runCmd(context.Background(), "/bin/ps", "-p", strconv.Itoa(procs[i].pid), "-o", "command="); err == nil {
+			if cmd := strings.TrimSpace(out); cmd != "" {
+				procs[i].command = cmd
+			}
+		}
+	}
+	return procs
+}
+
+// ensurePortFree 处理端口占用：
+//   - 占用的若是旧 macsync 实例 → 自动停止并接管（免去手动找进程）
+//   - 其他进程占用 → 返回带进程信息和释放命令的明确错误
+func ensurePortFree(port int) error {
+	procs := portProcs(port)
+	if len(procs) == 0 {
+		return nil
+	}
+	var mine, others []procInfo
+	for _, p := range procs {
+		if strings.Contains(p.command, "macsync") {
+			mine = append(mine, p)
+		} else {
+			others = append(others, p)
+		}
+	}
+	if len(mine) > 0 {
+		pids := make([]string, 0, len(mine))
+		for _, p := range mine {
+			pids = append(pids, strconv.Itoa(p.pid))
+		}
+		fmt.Printf("检测到旧的 macsync 实例 (PID %s) 占用端口 %d，正在停止并接管…\n", strings.Join(pids, ", "), port)
+		for _, p := range mine {
+			_ = syscall.Kill(p.pid, syscall.SIGTERM)
+		}
+		for i := 0; i < 30; i++ {
+			if len(portProcs(port)) == 0 {
+				return nil
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		return errors.New("旧 macsync 实例未能停止，请手动执行: pkill -f \"macsync serve\"")
+	}
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("端口 %d 已被其他进程占用:\n", port))
+	for _, p := range others {
+		b.WriteString(fmt.Sprintf("  PID %d  %s\n", p.pid, p.command))
+	}
+	b.WriteString("请先停止该进程，或换一个端口启动: macsync serve --port N\n")
+	b.WriteString("按端口找进程: lsof -ti:" + strconv.Itoa(port) + " | xargs kill")
+	return errors.New(b.String())
+}
 
 func cmdServe(args []string) {
 	port := 8787
@@ -26,6 +115,27 @@ func cmdServe(args []string) {
 			}
 		}
 	}
+
+	// 先解决端口占用，再绑定，最后才打印"已启动"
+	addr := "127.0.0.1:" + strconv.Itoa(port)
+	if err := ensurePortFree(port); err != nil {
+		fmt.Fprintln(os.Stderr, "启动失败:", err)
+		os.Exit(1)
+	}
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "启动失败:", err)
+		// 预检可能因时序漏判，bind 失败时再查一次占用者
+		if procs := portProcs(port); len(procs) > 0 {
+			fmt.Fprintln(os.Stderr, "占用进程:")
+			for _, p := range procs {
+				fmt.Fprintf(os.Stderr, "  PID %d  %s\n", p.pid, p.command)
+			}
+		}
+		fmt.Fprintln(os.Stderr, "释放端口: lsof -ti:"+strconv.Itoa(port)+" | xargs kill  或换端口: macsync serve --port N")
+		os.Exit(1)
+	}
+	defer ln.Close()
 
 	current := currentReportPath()
 	if _, err := os.Stat(current); os.IsNotExist(err) {
@@ -122,11 +232,10 @@ func cmdServe(args []string) {
 		writeJSON(w, http.StatusOK, res)
 	})
 
-	addr := "127.0.0.1:" + strconv.Itoa(port)
 	fmt.Printf("macsync Web 界面已启动 → http://%s\n", addr)
 	fmt.Println("按 Ctrl+C 停止。")
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		fmt.Fprintln(os.Stderr, "服务启动失败:", err)
+	if err := http.Serve(ln, mux); err != nil {
+		fmt.Fprintln(os.Stderr, "服务异常退出:", err)
 		os.Exit(1)
 	}
 }

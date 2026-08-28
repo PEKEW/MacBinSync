@@ -23,7 +23,12 @@ cd ~/macsync
 ./macsync serve            # 可选 --port N
 ```
 
-停止服务：`pkill -f "macsync serve"`。
+停止服务：`pkill -f "macsync serve"`（也可直接 Ctrl+C）。
+
+**端口占用自动处理**（`serve` 启动时）：
+- 占着端口的若是**旧的 macsync 实例** → 自动停止它并接管，无需手动找进程
+- 被**其他进程**占用 → 报错列出 `PID + 进程名`，并给出释放命令：`lsof -ti:8787 | xargs kill`，或 `macsync serve --port N` 换端口
+- "已启动"提示在**端口绑定成功后才打印**（不会先显示启动成功再失败）
 
 ⚠️ **运行须知（重要）**：如果服务是由受限环境（如 AI 助手的沙箱）启动的，**「卸载/移入废纸篓」等删除操作会失败**（报 `Operation not permitted`，因为要删 `/opt/homebrew`、`/Applications` 下的文件）。**正常使用请从自己的终端运行 `./macsync serve`**，盘点、队列、同步等功能不受影响。
 
