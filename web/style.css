@@ -114,6 +114,15 @@ td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size
 .cfg-row .p { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
 .cfg-row .meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
+.hint { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+
+details.deps { margin-top: 14px; }
+details.deps summary {
+  cursor: pointer; color: var(--accent); font-size: 13px;
+  margin-bottom: 8px; user-select: none;
+}
+details.deps summary:hover { text-decoration: underline; }
+
 .hidden { display: none !important; }
 
 footer {

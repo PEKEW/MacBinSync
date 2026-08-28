@@ -39,14 +39,11 @@
   }
 
   function brewTable(items, kind) {
-    if (!items.length) return `<div class="empty">未安装 ${kind === "cask" ? "cask" : "formula"}</div>`;
+    if (!items.length) return `<div class="empty">无</div>`;
     return `<table><thead><tr><th>名称</th><th>版本</th><th>来源</th></tr></thead><tbody>${items
       .map((f) => {
-        const tag = kind === "formula"
-          ? (f.top_level ? '<span class="tag top">brew leaves</span>' : '<span class="tag dep">依赖</span>')
-          : "";
         const od = f.outdated ? '<span class="tag outdated">可更新</span>' : "";
-        return `<tr><td class="name">${esc(f.name)}${tag}${od}</td><td class="mono">${esc(f.version)}</td><td class="mono">${esc(kind)}</td></tr>`;
+        return `<tr><td class="name">${esc(f.name)}${od}</td><td class="mono">${esc(f.version)}</td><td class="mono">${esc(kind)}</td></tr>`;
       })
       .join("")}</tbody></table>`;
   }
@@ -67,10 +64,17 @@
       ["Brew 前缀", m.brew_prefix || "-"],
     ]));
 
-    // brew
+    // brew：leaves 主展示，依赖收进可折叠列表
     const brew = report.brew;
-    html += section("Homebrew", `${brew.formulae.length} formula · ${brew.casks.length} cask`,
-      brewTable(brew.formulae, "formula") +
+    const leaves = brew.formulae.filter((f) => f.top_level);
+    const deps = brew.formulae.filter((f) => !f.top_level);
+    const depsHTML = deps.length
+      ? `<details class="deps"><summary>依赖公式（${deps.length}，随 leaves 自动装入）</summary>${brewTable(deps, "formula")}</details>`
+      : "";
+    html += section("Homebrew", `${leaves.length} 主动安装 · ${deps.length} 依赖 · ${brew.casks.length} cask`,
+      `<div class="hint">「主动安装」= brew leaves，即你显式安装的公式；「依赖」是它们自动拉入的，默认折叠。</div>` +
+      brewTable(leaves, "formula") +
+      depsHTML +
       `<h3 style="margin:14px 0 6px;color:var(--muted);font-size:13px;">Casks</h3>` +
       brewTable(brew.casks, "cask") +
       (brew.taps.length
@@ -151,6 +155,8 @@
         const hay = sec.textContent.toLowerCase();
         sec.classList.toggle("hidden", !hay.includes(q));
       });
+      // 过滤时展开依赖列表，让命中的内容可见；清空后恢复折叠
+      document.querySelectorAll("details.deps").forEach((d) => { d.open = !!q; });
     }, 120);
   });
 
