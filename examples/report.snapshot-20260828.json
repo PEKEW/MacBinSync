@@ -1,0 +1,1464 @@
+{
+  "machine": {
+    "hostname": "PeikedeMac-mini.local",
+    "os_name": "macOS",
+    "os_version": "26.6.2",
+    "chip": "arm64",
+    "home": "/Users/peke",
+    "shell": "/bin/zsh",
+    "brew_prefix": "/opt/homebrew/bin"
+  },
+  "brew": {
+    "formulae": [
+      {
+        "name": "brotli",
+        "version": "1.2.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "c-ares",
+        "version": "1.34.5",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "ca-certificates",
+        "version": "2026-08-13, 2026-05-14",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "cairo",
+        "version": "1.18.4",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "ccat",
+        "version": "1.1.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "certifi",
+        "version": "2026.7.22",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "dav1d",
+        "version": "1.5.4",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "deno",
+        "version": "2.9.5",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "fd",
+        "version": "10.3.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "ffmpeg",
+        "version": "9.0.1",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "fontconfig",
+        "version": "2.17.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "freetype",
+        "version": "2.14.1_1, 2.14.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "fribidi",
+        "version": "1.0.16",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "fzf",
+        "version": "0.66.1",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "gettext",
+        "version": "1.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "gh",
+        "version": "2.97.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "giflib",
+        "version": "6.1.3, 5.2.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "glib",
+        "version": "2.86.3, 2.86.4",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "gmp",
+        "version": "6.3.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "gnupg",
+        "version": "2.4.9",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "gnutls",
+        "version": "3.8.11",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "go",
+        "version": "1.26.1",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "gpgme",
+        "version": "2.0.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "gpgmepp",
+        "version": "2.0.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "graphite2",
+        "version": "1.3.14",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "harfbuzz",
+        "version": "13.0.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "icu4c@77",
+        "version": "77.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "icu4c@78",
+        "version": "78.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "iproute2mac",
+        "version": "1.6.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "jpeg-turbo",
+        "version": "3.1.3, 3.2.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "lame",
+        "version": "4.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "leptonica",
+        "version": "1.87.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libarchive",
+        "version": "3.8.5_1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libassuan",
+        "version": "3.0.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libb2",
+        "version": "0.98.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libdatrie",
+        "version": "0.2.14",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libevent",
+        "version": "2.1.12_1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libgcrypt",
+        "version": "1.11.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libgpg-error",
+        "version": "1.58",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libidn2",
+        "version": "2.3.8",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libksba",
+        "version": "1.6.7",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libnghttp2",
+        "version": "1.68.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libnghttp3",
+        "version": "1.12.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libngtcp2",
+        "version": "1.17.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libpng",
+        "version": "1.6.55, 1.6.54, 1.6.58",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libtasn1",
+        "version": "4.21.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libthai",
+        "version": "0.1.30",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libtiff",
+        "version": "4.7.1_1, 4.7.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libunistring",
+        "version": "1.4.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libusb",
+        "version": "1.0.29",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libuv",
+        "version": "1.51.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libvmaf",
+        "version": "3.2.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libvpx",
+        "version": "1.16.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libx11",
+        "version": "1.8.13",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libxau",
+        "version": "1.0.12",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libxcb",
+        "version": "1.17.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libxdmcp",
+        "version": "1.1.5",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libxext",
+        "version": "1.3.7",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "libxrender",
+        "version": "0.9.12",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "little-cms2",
+        "version": "2.18, 2.19",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "lpeg",
+        "version": "1.1.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "luajit",
+        "version": "2.1.1761727121",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "luv",
+        "version": "1.51.0-1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "lz4",
+        "version": "1.10.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "lzo",
+        "version": "2.10",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "mole",
+        "version": "1.33.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "mpdecimal",
+        "version": "4.0.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "mpg123",
+        "version": "1.33.7",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "ncurses",
+        "version": "6.6",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "neofetch",
+        "version": "7.1.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "neovim",
+        "version": "0.11.4",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "nettle",
+        "version": "3.10.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "node",
+        "version": "24.10.0_1",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "npth",
+        "version": "1.8",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "nspr",
+        "version": "4.38.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "nss",
+        "version": "3.120",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "opencode",
+        "version": "1.2.15",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "openjdk@11",
+        "version": "11.0.30",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "openjpeg",
+        "version": "2.5.4",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "openssl@3",
+        "version": "3.6.3, 3.6.2, 3.6.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "opus",
+        "version": "1.6.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "p11-kit",
+        "version": "0.26.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "pandoc",
+        "version": "3.10",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "pango",
+        "version": "1.57.0_2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "pcre2",
+        "version": "10.47_1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "pdf2svg",
+        "version": "0.2.4",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "pinentry",
+        "version": "1.3.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "pixman",
+        "version": "0.46.4",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "poppler",
+        "version": "26.01.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "popt",
+        "version": "1.19",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "python@3.14",
+        "version": "3.14.7, 3.14.0_1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "qpdf",
+        "version": "12.3.2",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "readline",
+        "version": "8.3.3",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "redis",
+        "version": "8.2.2",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "remindctl",
+        "version": "0.3.4",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "ripgrep",
+        "version": "15.1.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "rsync",
+        "version": "3.4.3",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "screenresolution",
+        "version": "1.6",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "sdl2-compat",
+        "version": "2.32.70",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "sdl3",
+        "version": "3.4.14",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "simdjson",
+        "version": "4.1.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "socat",
+        "version": "1.8.1.1",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "sqlite",
+        "version": "3.50.4, 3.53.4",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "svt-av1",
+        "version": "4.2.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "tesseract",
+        "version": "5.5.2",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "tmux",
+        "version": "3.6a",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "tree",
+        "version": "2.3.2",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "tree-sitter",
+        "version": "0.25.10",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "unbound",
+        "version": "1.24.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "unibilium",
+        "version": "2.1.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "utf8proc",
+        "version": "2.11.3",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "uvwasi",
+        "version": "0.0.23",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "webp",
+        "version": "1.6.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "wget",
+        "version": "1.25.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "x264",
+        "version": "r3222",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "x265",
+        "version": "4.2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "xorgproto",
+        "version": "2025.1",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "xxhash",
+        "version": "0.8.3",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "xz",
+        "version": "5.8.3",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "yt-dlp",
+        "version": "2026.7.4",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "zsh-autosuggestions",
+        "version": "0.7.1",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "zsh-syntax-highlighting",
+        "version": "0.8.0",
+        "top_level": true,
+        "outdated": false
+      },
+      {
+        "name": "zstd",
+        "version": "1.5.7_1",
+        "top_level": false,
+        "outdated": false
+      }
+    ],
+    "casks": [
+      {
+        "name": "android-studio",
+        "version": "2026.1.2.10,quail2",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "karabiner-elements",
+        "version": "15.7.0",
+        "top_level": false,
+        "outdated": false
+      },
+      {
+        "name": "xquartz",
+        "version": "2.8.5",
+        "top_level": false,
+        "outdated": false
+      }
+    ],
+    "taps": [
+      "anomalyco/tap",
+      "nikitabobko/tap",
+      "steipete/tap"
+    ]
+  },
+  "uv": {
+    "tools": [
+      {
+        "name": "kimi-cli",
+        "version": "1.49.0",
+        "binaries": [
+          "kimi",
+          "kimi-cli"
+        ]
+      },
+      {
+        "name": "synto",
+        "version": "0.7.0",
+        "binaries": [
+          "synto"
+        ]
+      }
+    ]
+  },
+  "runtimes": {
+    "rustup_toolchains": [
+      "stable-aarch64-apple-darwin (active, default)"
+    ],
+    "node": {
+      "version": "v20.20.2",
+      "nvm_versions": [
+        "v20.20.2"
+      ],
+      "global_packages": [
+        "@anthropic-ai/claude-code@2.1.183",
+        "@openai/codex@0.148.0",
+        "corepack@0.34.6",
+        "npm@10.8.2"
+      ]
+    }
+  },
+  "cargo": {
+    "bins": [
+      "cargo",
+      "cargo-clippy",
+      "cargo-fmt",
+      "cargo-miri",
+      "clippy-driver",
+      "rls",
+      "rust-analyzer",
+      "rust-gdb",
+      "rust-gdbgui",
+      "rust-lldb",
+      "rustc",
+      "rustdoc",
+      "rustfmt",
+      "rustup"
+    ]
+  },
+  "local_bin": {
+    "bins": [
+      "claude",
+      "env",
+      "env.fish",
+      "fcode",
+      "kimi",
+      "kimi-cli",
+      "synto",
+      "uv",
+      "uvx"
+    ]
+  },
+  "apps": [
+    {
+      "name": ".Karabiner-VirtualHIDDevice-Manager",
+      "path": "/Applications/.Karabiner-VirtualHIDDevice-Manager.app",
+      "version": "6.5.0"
+    },
+    {
+      "name": "Adguard",
+      "path": "/Applications/Adguard.app",
+      "version": "2.19.0.2258"
+    },
+    {
+      "name": "Android Studio",
+      "path": "/Applications/Android Studio.app",
+      "version": "2026.1"
+    },
+    {
+      "name": "Clash Verge",
+      "path": "/Applications/Clash Verge.app",
+      "version": "2.4.2"
+    },
+    {
+      "name": "CodexBar",
+      "path": "/Applications/CodexBar.app",
+      "version": "0.49.6"
+    },
+    {
+      "name": "Commander One",
+      "path": "/Applications/Commander One.app",
+      "version": "3.17.1"
+    },
+    {
+      "name": "DeepSeek Harness",
+      "path": "/Applications/DeepSeek Harness.app",
+      "version": "0.1.0-rc.5"
+    },
+    {
+      "name": "Google Chrome",
+      "path": "/Applications/Google Chrome.app",
+      "version": "151.0.7922.174"
+    },
+    {
+      "name": "IINA",
+      "path": "/Applications/IINA.app",
+      "version": "1.4.1"
+    },
+    {
+      "name": "Karabiner-Elements",
+      "path": "/Applications/Karabiner-Elements.app",
+      "version": ""
+    },
+    {
+      "name": "Lark",
+      "path": "/Applications/Lark.app",
+      "version": "131.0.6778.268"
+    },
+    {
+      "name": "Maccy",
+      "path": "/Applications/Maccy.app",
+      "version": "2.6.1"
+    },
+    {
+      "name": "Maipo",
+      "path": "/Applications/Maipo.app",
+      "version": "5.0.0"
+    },
+    {
+      "name": "Menuist",
+      "path": "/Applications/Menuist.app",
+      "version": "4.1.0"
+    },
+    {
+      "name": "Microsoft Defender Shim",
+      "path": "/Applications/Microsoft Defender Shim.app",
+      "version": "101.24080.0001"
+    },
+    {
+      "name": "Microsoft Excel",
+      "path": "/Applications/Microsoft Excel.app",
+      "version": "16.106.2"
+    },
+    {
+      "name": "Microsoft Outlook",
+      "path": "/Applications/Microsoft Outlook.app",
+      "version": "16.102.2"
+    },
+    {
+      "name": "Microsoft PowerPoint",
+      "path": "/Applications/Microsoft PowerPoint.app",
+      "version": "16.106.2"
+    },
+    {
+      "name": "Microsoft To Do",
+      "path": "/Applications/Microsoft To Do.app",
+      "version": "2.169"
+    },
+    {
+      "name": "Microsoft Word",
+      "path": "/Applications/Microsoft Word.app",
+      "version": "16.106.2"
+    },
+    {
+      "name": "Motrix",
+      "path": "/Applications/Motrix.app",
+      "version": "1.8.19"
+    },
+    {
+      "name": "Obsidian",
+      "path": "/Applications/Obsidian.app",
+      "version": "1.12.7"
+    },
+    {
+      "name": "OneDrive",
+      "path": "/Applications/OneDrive.app",
+      "version": "26.145.0728"
+    },
+    {
+      "name": "Safari",
+      "path": "/Applications/Safari.app",
+      "version": "26.6.2"
+    },
+    {
+      "name": "Skim",
+      "path": "/Applications/Skim.app",
+      "version": "1.7.12"
+    },
+    {
+      "name": "Snipaste",
+      "path": "/Applications/Snipaste.app",
+      "version": "2.10.8"
+    },
+    {
+      "name": "Steam",
+      "path": "/Applications/Steam.app",
+      "version": ""
+    },
+    {
+      "name": "Steam++",
+      "path": "/Applications/Steam++.app",
+      "version": "3.0.0"
+    },
+    {
+      "name": "TencentMeeting",
+      "path": "/Applications/TencentMeeting.app",
+      "version": "3.41.11"
+    },
+    {
+      "name": "Termius",
+      "path": "/Applications/Termius.app",
+      "version": "9.33.0"
+    },
+    {
+      "name": "Transmission",
+      "path": "/Applications/Transmission.app",
+      "version": "4.0.6"
+    },
+    {
+      "name": "VLC",
+      "path": "/Applications/VLC.app",
+      "version": "3.0.21"
+    },
+    {
+      "name": "WeChat",
+      "path": "/Applications/WeChat.app",
+      "version": "4.1.2"
+    },
+    {
+      "name": "cmux",
+      "path": "/Applications/cmux.app",
+      "version": "0.64.22"
+    },
+    {
+      "name": "iShot",
+      "path": "/Applications/iShot.app",
+      "version": "2.6.4"
+    },
+    {
+      "name": "iTerm",
+      "path": "/Applications/iTerm.app",
+      "version": "3.6.11"
+    },
+    {
+      "name": "logioptionsplus",
+      "path": "/Applications/logioptionsplus.app",
+      "version": "2.6.944893"
+    },
+    {
+      "name": "qbittorrent",
+      "path": "/Applications/qbittorrent.app",
+      "version": "4.1.8"
+    },
+    {
+      "name": "wpsoffice",
+      "path": "/Applications/wpsoffice.app",
+      "version": "12.1.26046"
+    }
+  ],
+  "configs": [
+    {
+      "path": "/Users/peke/.aerospace.toml",
+      "type": "file",
+      "size": 2089,
+      "hash": "21f7e234e11b4572",
+      "mod_time": "2026-03-11T10:29:31.510545192+08:00"
+    },
+    {
+      "path": "/Users/peke/.agents-config",
+      "type": "git-repo",
+      "size": 448,
+      "file_count": 291,
+      "mod_time": "2026-07-28T16:22:50.964010365+08:00"
+    },
+    {
+      "path": "/Users/peke/.ai",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-08-13T17:36:08.764453148+08:00"
+    },
+    {
+      "path": "/Users/peke/.cc-feishu-link",
+      "type": "dir",
+      "size": 128,
+      "file_count": 17,
+      "mod_time": "2026-06-29T12:47:54.973405533+08:00"
+    },
+    {
+      "path": "/Users/peke/.claude",
+      "type": "dir",
+      "size": 1120,
+      "file_count": 8255,
+      "mod_time": "2026-08-28T14:39:45.207816763+08:00"
+    },
+    {
+      "path": "/Users/peke/.claude.json",
+      "type": "file",
+      "size": 123027,
+      "hash": "a99e469eba6372cb",
+      "mod_time": "2026-08-28T15:49:30.876257231+08:00"
+    },
+    {
+      "path": "/Users/peke/.claude.json.backup",
+      "type": "file",
+      "size": 15628,
+      "hash": "23e0873daee8c5cb",
+      "mod_time": "2026-02-27T10:36:01.12415199+08:00"
+    },
+    {
+      "path": "/Users/peke/.cmux",
+      "type": "dir",
+      "size": 96,
+      "file_count": 12,
+      "mod_time": "2026-07-21T17:16:50.979395451+08:00"
+    },
+    {
+      "path": "/Users/peke/.cmuxterm",
+      "type": "dir",
+      "size": 448,
+      "file_count": 678,
+      "mod_time": "2026-08-28T15:48:30.857613351+08:00"
+    },
+    {
+      "path": "/Users/peke/.codex",
+      "type": "dir",
+      "size": 1120,
+      "file_count": 5591,
+      "mod_time": "2026-08-28T15:45:34.188110876+08:00"
+    },
+    {
+      "path": "/Users/peke/.codexbar",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-08-13T13:29:05.702713778+08:00"
+    },
+    {
+      "path": "/Users/peke/.config",
+      "type": "dir",
+      "size": 608,
+      "file_count": 881,
+      "mod_time": "2026-08-19T12:11:20.976876554+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/.DS_Store",
+      "type": "file",
+      "size": 8196,
+      "hash": "54d3ec3283826b87",
+      "mod_time": "2026-03-19T20:05:57.466357252+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/cmux",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-05-28T15:58:02.131855067+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/codexbar",
+      "type": "dir",
+      "size": 128,
+      "file_count": 1,
+      "mod_time": "2026-08-13T13:32:21.718226685+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/fish",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-03-10T10:30:48.708666502+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/gh",
+      "type": "dir",
+      "size": 128,
+      "file_count": 2,
+      "mod_time": "2026-08-19T12:11:20.977053014+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/git",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2025-11-05T17:33:18.769918119+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/iterm2",
+      "type": "dir",
+      "size": 128,
+      "file_count": 2,
+      "mod_time": "2026-08-27T11:21:56.774962259+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/karabiner",
+      "type": "dir",
+      "size": 160,
+      "file_count": 6,
+      "mod_time": "2026-01-12T11:23:24.237815227+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/llm-shell",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-04-15T11:13:04.868825712+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/mole",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-04-07T09:02:13.329776636+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/neofetch",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2025-10-30T14:30:55.461425749+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/nvim",
+      "type": "git-repo",
+      "size": 416,
+      "file_count": 98,
+      "mod_time": "2026-03-05T12:19:00.73241117+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/nvim.backup.20260109_152330",
+      "type": "dir",
+      "size": 352,
+      "file_count": 13,
+      "mod_time": "2025-10-30T14:44:41.897741054+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/opencode",
+      "type": "dir",
+      "size": 256,
+      "file_count": 747,
+      "mod_time": "2026-06-01T16:15:04.803623465+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/qBittorrent",
+      "type": "dir",
+      "size": 128,
+      "file_count": 2,
+      "mod_time": "2026-06-26T12:20:02.816071244+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/synto",
+      "type": "dir",
+      "size": 128,
+      "file_count": 2,
+      "mod_time": "2026-08-19T17:33:03.145471193+08:00"
+    },
+    {
+      "path": "/Users/peke/.config/uv",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-03-10T10:30:48.72393732+08:00"
+    },
+    {
+      "path": "/Users/peke/.dsh",
+      "type": "dir",
+      "size": 256,
+      "file_count": 522,
+      "mod_time": "2026-08-27T11:23:18.37289824+08:00"
+    },
+    {
+      "path": "/Users/peke/.float",
+      "type": "file",
+      "size": 136,
+      "hash": "e5fc716048159dc8",
+      "mod_time": "2026-03-10T18:42:38.897919703+08:00"
+    },
+    {
+      "path": "/Users/peke/.float.state",
+      "type": "file",
+      "size": 2,
+      "hash": "4f53cda18c2baa0c",
+      "mod_time": "2026-03-11T10:51:05.084093113+08:00"
+    },
+    {
+      "path": "/Users/peke/.free-code",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-06-03T11:46:30.698538853+08:00"
+    },
+    {
+      "path": "/Users/peke/.gitconfig",
+      "type": "file",
+      "size": 78,
+      "hash": "d3d23e6d7953ad8b",
+      "mod_time": "2026-01-14T11:29:21.449137971+08:00"
+    },
+    {
+      "path": "/Users/peke/.happy",
+      "type": "dir",
+      "size": 160,
+      "file_count": 6,
+      "mod_time": "2025-11-13T11:56:35.487598296+08:00"
+    },
+    {
+      "path": "/Users/peke/.homebrew",
+      "type": "dir",
+      "size": 128,
+      "file_count": 2,
+      "mod_time": "2026-08-13T17:37:04.101249209+08:00"
+    },
+    {
+      "path": "/Users/peke/.kimi",
+      "type": "dir",
+      "size": 352,
+      "file_count": 257,
+      "mod_time": "2026-08-18T17:41:05.131804862+08:00"
+    },
+    {
+      "path": "/Users/peke/.macsync",
+      "type": "dir",
+      "size": 160,
+      "file_count": 3,
+      "mod_time": "2026-08-28T15:44:19.731755403+08:00"
+    },
+    {
+      "path": "/Users/peke/.oh-my-zsh",
+      "type": "git-repo",
+      "size": 736,
+      "file_count": 2008,
+      "mod_time": "2026-08-18T13:20:44.22629516+08:00"
+    },
+    {
+      "path": "/Users/peke/.ollama",
+      "type": "dir",
+      "size": 224,
+      "file_count": 10,
+      "mod_time": "2026-02-27T14:28:13.968336204+08:00"
+    },
+    {
+      "path": "/Users/peke/.pdfbox.cache",
+      "type": "file",
+      "size": 112739,
+      "hash": "899d8a636ce3e62c",
+      "mod_time": "2026-08-18T14:04:44.11007023+08:00"
+    },
+    {
+      "path": "/Users/peke/.profile",
+      "type": "file",
+      "size": 47,
+      "hash": "b90b3a4fcbcfdb34",
+      "mod_time": "2026-04-01T10:31:58.183371271+08:00"
+    },
+    {
+      "path": "/Users/peke/.serverauth.10428",
+      "type": "file",
+      "size": 66,
+      "hash": "fd4aaebafa0efb81",
+      "mod_time": "2026-02-28T16:00:58.948626324+08:00"
+    },
+    {
+      "path": "/Users/peke/.serverauth.17177",
+      "type": "file",
+      "size": 66,
+      "hash": "5867fb134ffa6fc0",
+      "mod_time": "2026-01-12T15:59:55.462207366+08:00"
+    },
+    {
+      "path": "/Users/peke/.snipaste",
+      "type": "dir",
+      "size": 160,
+      "file_count": 25,
+      "mod_time": "2026-08-26T16:53:22.293153656+08:00"
+    },
+    {
+      "path": "/Users/peke/.sogouinput",
+      "type": "dir",
+      "size": 64,
+      "mod_time": "2026-01-08T19:55:51.670676846+08:00"
+    },
+    {
+      "path": "/Users/peke/.ssh",
+      "type": "dir",
+      "size": 384,
+      "file_count": 10,
+      "mod_time": "2026-08-28T15:25:49.098228339+08:00"
+    },
+    {
+      "path": "/Users/peke/.swiftpm",
+      "type": "dir",
+      "size": 160,
+      "file_count": 3,
+      "mod_time": "2026-03-11T10:28:57.938225139+08:00"
+    },
+    {
+      "path": "/Users/peke/.tcshrc",
+      "type": "file",
+      "size": 31,
+      "hash": "607f891858400777",
+      "mod_time": "2026-04-01T10:31:58.193602751+08:00"
+    },
+    {
+      "path": "/Users/peke/.vim",
+      "type": "dir",
+      "size": 96,
+      "file_count": 1,
+      "mod_time": "2026-02-28T15:05:14.703212417+08:00"
+    },
+    {
+      "path": "/Users/peke/.viminfo",
+      "type": "file",
+      "size": 21217,
+      "hash": "58c08684ac1077ae",
+      "mod_time": "2026-04-20T10:41:18.021118876+08:00"
+    },
+    {
+      "path": "/Users/peke/.vscode",
+      "type": "dir",
+      "size": 192,
+      "file_count": 45438,
+      "mod_time": "2026-02-27T14:10:37.24030343+08:00"
+    },
+    {
+      "path": "/Users/peke/.wget-hsts",
+      "type": "file",
+      "size": 165,
+      "hash": "a081b168fe466c78",
+      "mod_time": "2026-01-28T14:05:55.653254775+08:00"
+    },
+    {
+      "path": "/Users/peke/.zcompdump-PeikedeMac-mini-5.9",
+      "type": "file",
+      "size": 49846,
+      "hash": "f3eb95930f67b2bb",
+      "mod_time": "2026-08-18T13:20:44.831520063+08:00"
+    },
+    {
+      "path": "/Users/peke/.zcompdump-PeikedeMac-mini-5.9.zwc",
+      "type": "file",
+      "size": 117408,
+      "hash": "f9c1d703053b39d0",
+      "mod_time": "2026-08-18T13:20:44.84654804+08:00"
+    },
+    {
+      "path": "/Users/peke/.zcompdump-pekedeMac-mini-5.9",
+      "type": "file",
+      "size": 49846,
+      "hash": "540226c3e1adec82",
+      "mod_time": "2025-12-16T10:09:19.008585555+08:00"
+    },
+    {
+      "path": "/Users/peke/.zcompdump-pekedeMac-mini-5.9.zwc",
+      "type": "file",
+      "size": 117408,
+      "hash": "b99abced625bd776",
+      "mod_time": "2025-12-16T10:09:19.027080237+08:00"
+    },
+    {
+      "path": "/Users/peke/.zsh_sessions",
+      "type": "dir",
+      "size": 160,
+      "file_count": 3,
+      "mod_time": "2025-12-08T11:10:48.757853871+08:00"
+    },
+    {
+      "path": "/Users/peke/.zshenv",
+      "type": "file",
+      "size": 21,
+      "hash": "787ab203279ada7a",
+      "mod_time": "2026-04-01T10:31:58.188244615+08:00"
+    },
+    {
+      "path": "/Users/peke/.zshrc",
+      "type": "file",
+      "size": 5558,
+      "hash": "219fe85666604ba7",
+      "mod_time": "2026-07-16T16:38:22.781076845+08:00"
+    }
+  ],
+  "generated_at": "2026-08-28T15:50:58.298437+08:00"
+}
