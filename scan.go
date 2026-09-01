@@ -68,6 +68,19 @@ func collectReport(progress func(scanStep)) Report {
 	return r
 }
 
+// readCurrentReport 读取当前盘点到内存（不存在时返回错误）。
+func readCurrentReport() (Report, error) {
+	data, err := os.ReadFile(currentReportPath())
+	if err != nil {
+		return Report{}, err
+	}
+	var rep Report
+	if err := json.Unmarshal(data, &rep); err != nil {
+		return Report{}, err
+	}
+	return rep, nil
+}
+
 // runScan 执行盘点并写入 out（同时写入 dataDir/reports/<hostname>.json 快照）。
 // progress 透传给 collectReport。
 func runScan(out string, progress func(scanStep)) (Report, error) {

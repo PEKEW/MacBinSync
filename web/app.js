@@ -236,6 +236,131 @@
     currentItem = null;
   }
 
+  // ---------- GitHub 同步 ----------
+
+  let syncCfg = { github_repo: "", last_sync: "" };
+
+  function syncStatusBadge() {
+    return `<span class="sync-status ${syncCfg.github_repo ? "on" : "off"}">${syncCfg.github_repo ? "已配置" : "未配置"}</span>`;
+  }
+
+  function showSyncResult(res) {
+    const el = $("#sync-result");
+    if (el) {
+      el.textContent = res.message || "";
+      el.className = "sync-result " + (res.ok ? "ok" : "err");
+    }
+  }
+
+  // 未配置：填写仓库 + 连接指引
+  function renderSyncSetup() {
+    $("#modal-title").textContent = "GitHub 同步 · 首次设置";
+    $("#modal-uninstall").classList.add("hidden");
+    $("#modal-queue").classList.add("hidden");
+    $("#modal-cancel").textContent = "关闭";
+    $("#modal-body").innerHTML = `
+      <div class="sync-setup">
+        <div class="hint">同步需要一个 GitHub <b>私有仓库</b>，存放同步队列与各机盘点快照（不含密钥配置）。</div>
+        <label for="sync-repo-input">同步专用仓库（owner/name 或完整 URL）</label>
+        <input id="sync-repo-input" placeholder="例如: peke/macsync-sync" value="${esc(syncCfg.github_repo)}">
+        <div class="sync-hints">
+          还没有仓库？在终端先执行：
+          <code>gh auth login</code> 登录 GitHub
+          <code>gh repo create macsync-sync --private</code> 创建私有仓库
+        </div>
+        <div class="sync-buttons">
+          <button id="sync-save" class="primary">保存并测试连接</button>
+        </div>
+        <pre id="sync-result" class="sync-result"></pre>
+      </div>`;
+    $("#sync-save").addEventListener("click", async () => {
+      const repo = $("#sync-repo-input").value.trim();
+      if (!repo) { showSyncResult({ ok: false, message: "请先填写仓库" }); return; }
+      const btn = $("#sync-save");
+      btn.disabled = true; btn.textContent = "测试中…";
+      try {
+        syncCfg = await postJSON("/api/config", { github_repo: repo });
+        const res = await postJSON("/api/sync/test", {});
+        showSyncResult(res);
+        if (res.ok) { toast("GitHub 同步已配置并连接"); renderSyncOps(); }
+        else { toast("连接失败", false); }
+      } catch (err) {
+        showSyncResult({ ok: false, message: "请求失败: " + err.message });
+      } finally {
+        btn.disabled = false; btn.textContent = "保存并测试连接";
+      }
+    });
+    $("#modal").classList.remove("hidden");
+  }
+
+  // 已配置：状态 + 测试/推送/拉取
+  function renderSyncOps() {
+    $("#modal-title").textContent = "GitHub 同步";
+    $("#modal-uninstall").classList.add("hidden");
+    $("#modal-queue").classList.add("hidden");
+    $("#modal-cancel").textContent = "关闭";
+    $("#modal-body").innerHTML = `
+      <div class="item-detail">
+        <div class="row"><span class="k">仓库</span><span class="v mono">${esc(syncCfg.github_repo)}</span></div>
+        <div class="row"><span class="k">状态</span><span class="v">${syncStatusBadge()}</span></div>
+        <div class="row"><span class="k">上次同步</span><span class="v mono" id="sync-last">${syncCfg.last_sync ? fmtTime(syncCfg.last_sync) : "从未"}</span></div>
+      </div>
+      <div class="sync-buttons">
+        <button id="sync-test">测试连接</button>
+        <button id="sync-push" class="primary">↑ 推送本机数据</button>
+        <button id="sync-pull" class="primary">↓ 拉取远端数据</button>
+        <button id="sync-reconfig" class="ghost">更换仓库</button>
+      </div>
+      <pre id="sync-result" class="sync-result"></pre>`;
+    $("#sync-test").addEventListener("click", async () => {
+      const btn = $("#sync-test"); btn.disabled = true;
+      try { showSyncResult(await postJSON("/api/sync/test", {})); }
+      catch (err) { showSyncResult({ ok: false, message: "请求失败: " + err.message }); }
+      finally { btn.disabled = false; }
+    });
+    $("#sync-push").addEventListener("click", async () => runSync("push"));
+    $("#sync-pull").addEventListener("click", async () => runSync("pull"));
+    $("#sync-reconfig").addEventListener("click", renderSyncSetup);
+    $("#modal").classList.remove("hidden");
+  }
+
+  async function runSync(direction) {
+    const btn = direction === "push" ? $("#sync-push") : $("#sync-pull");
+    btn.disabled = true;
+    const orig = btn.textContent;
+    btn.textContent = direction === "push" ? "推送中…" : "拉取中…";
+    try {
+      const res = await postJSON("/api/sync", { direction });
+      showSyncResult(res);
+      if (res.ok) {
+        toast((direction === "push" ? "已推送" : "已拉取") + "到 GitHub");
+        const cfg = await (await fetch("/api/config")).json();
+        syncCfg = cfg;
+        if (direction === "pull") { await loadQueue(); } // 远端队列可能合并进来
+      } else {
+        toast("同步失败", false);
+      }
+    } catch (err) {
+      showSyncResult({ ok: false, message: "请求失败: " + err.message });
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+      const lastEl = $("#sync-last");
+      if (lastEl) lastEl.textContent = syncCfg.last_sync ? fmtTime(syncCfg.last_sync) : "从未";
+    }
+  }
+
+  function openSyncModal() {
+    $("#modal").classList.remove("hidden");
+    $("#modal-title").textContent = "GitHub 同步";
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((cfg) => { syncCfg = cfg; cfg.github_repo ? renderSyncOps() : renderSyncSetup(); })
+      .catch(() => {
+        $("#modal-body").innerHTML = `<div class="empty">加载配置失败</div>`;
+      });
+  }
+
   // ---------- 动作 ----------
 
   async function postJSON(url, body) {
@@ -348,6 +473,7 @@
   });
 
   $("#queue-btn").addEventListener("click", openQueueModal);
+  $("#sync-btn").addEventListener("click", openSyncModal);
 
   $("#refresh").addEventListener("click", async () => {
     content.innerHTML = `<div class="loading">正在重新盘点本机（brew / uv / 运行时 / 应用 / 配置）…</div>`;

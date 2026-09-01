@@ -232,6 +232,63 @@ func cmdServe(args []string) {
 		writeJSON(w, http.StatusOK, res)
 	})
 
+	// 同步配置：GET 查看，POST {github_repo} 保存
+	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			var req struct {
+				GitHubRepo string `json:"github_repo"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求体无效"})
+				return
+			}
+			cfg := loadConfig()
+			cfg.GitHubRepo = strings.TrimSpace(req.GitHubRepo)
+			if err := saveConfig(cfg); err != nil {
+				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return
+			}
+			writeJSON(w, http.StatusOK, cfg)
+			return
+		}
+		writeJSON(w, http.StatusOK, loadConfig())
+	})
+
+	// 测试 GitHub 连接
+	mux.HandleFunc("/api/sync/test", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "仅支持 POST"})
+			return
+		}
+		writeJSON(w, http.StatusOK, testSyncConnection())
+	})
+
+	// 同步：POST {direction: "push"|"pull"}
+	mux.HandleFunc("/api/sync", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "仅支持 POST"})
+			return
+		}
+		var req struct {
+			Direction string `json:"direction"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求体无效"})
+			return
+		}
+		var res SyncResult
+		switch req.Direction {
+		case "push":
+			res = syncPush()
+		case "pull":
+			res = syncPull()
+		default:
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "direction 必须是 push 或 pull"})
+			return
+		}
+		writeJSON(w, http.StatusOK, res)
+	})
+
 	fmt.Printf("macsync Web 界面已启动 → http://%s\n", addr)
 	fmt.Println("按 Ctrl+C 停止。")
 	if err := http.Serve(ln, mux); err != nil {

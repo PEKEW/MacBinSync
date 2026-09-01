@@ -85,6 +85,19 @@ cd ~/macsync
 - **同步队列**：持久化于 `~/.macsync/queue.json`（`{source, name, added_at}`，自动去重），重启不丢；头部徽标实时计数；队列查看弹窗支持逐条移除。**M3 将直接消费此队列**
 - 卸载成功后自动重新盘点刷新页面
 
+### ✅ 已完成：M3 v1 GitHub 多机同步（GUI 全程交互）
+
+- **同步载体**：GitHub 私有仓库（gh CLI 认证，本机已登录账号 `PEKEW`；无 gh 时退化 `git ls-remote` 凭据检测）
+- **点击「☁️ 同步」按钮 → 弹窗**：
+  - **未配置** → 引导填写仓库（`owner/name` 或完整 URL）+ 创建私有仓库命令（`gh repo create macsync-sync --private`）+ 「保存并测试连接」
+  - **已配置** → 显示连接状态/上次同步时间，「测试连接」「↑ 推送」「↓ 拉取」「更换仓库」按钮，结果区实时反馈
+- **push**：本机 `queue.json` + `reports/*.json` 快照 → git（先 pull 减少冲突，`-c user.name=macsync` 提交）→ push GitHub；成功后记录 `last_sync`
+- **pull**：git pull → **并集合并**远端 queue（不丢本机已选条目）→ 回拷各机报告快照
+- **仓库内容**：`queue.json` + `reports/<hostname>.json`（**不含密钥配置**，configs 目录暂不同步）
+- 配置存于 `~/.macsync/config.json`；克隆在 `~/.macsync/sync/`
+- **已验证**：gh 已登录时 test 走 gh 认证；仓库不存在 → 明确报错"无法访问仓库…请检查仓库名"；非法 direction → 400
+- 已知边界：沙箱内启动的服务 push/pull 可用，但卸载类操作仍受限（见运行须知）
+
 ### 已知问题 / 本机特性（排查时先看这里）
 
 1. **沙箱限制**：受限环境启动的服务无法删除工作区外文件（见「运行须知」）。已用完整权限手动完成过 aerospace 卸载验证
@@ -158,18 +171,19 @@ cd ~/macsync
 | GET/POST | `/api/queue` | GET 取队列；POST `{source,name}` 加入（去重） |
 | POST | `/api/queue/remove` | `{source,name}` 移出队列 |
 | POST | `/api/uninstall` | `{source,name}` 执行卸载，返回 `{ok, output, error?}` |
+| GET/POST | `/api/config` | GET 取同步配置；POST `{github_repo}` 保存 |
+| POST | `/api/sync/test` | 测试 GitHub 连接（gh 认证/仓库可达性） |
+| POST | `/api/sync` | `{direction:"push"\|"pull"}` 执行同步 |
 | GET | `/api/health` | 健康检查 |
 
 ---
 
 ## 未来计划
 
-### M3 多机同步（下一个里程碑）
-队列已经就位，M3 直接消费：
-- `manifest.yaml` 期望状态（brew formulae/casks/taps、uv tools、npm globals、配置文件列表）
+### M3 剩余（GitHub 同步 v1 已完成，以下是后续增强）
 - **多机 diff 视图**：A↔B 对比（`reports/` 下多份快照），"A 有 fd 而 B 没有" → 一键入 manifest / 入队列
-- **push/pull/apply 按钮**：push=本机清单推上 git；pull=拉取；apply=按 manifest 装缺失项
-- 载体：**git 私有仓库**（已定决策）；版本历史即操作日志，可回滚
+- `manifest.yaml` 期望状态（brew/uv/npm 清单 + 配置文件列表），apply 一键装缺失项
+- 同步冲突可视化（本地/远端改动冲突时展示）
 - 只同步 leaves（期望状态），依赖交给 brew 自己解析（UI 已为此分层）
 
 ### M2 搜索（已搁置，用户要求先做交互；场景=发现自己没有的工具）
