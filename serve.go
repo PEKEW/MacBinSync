@@ -137,14 +137,8 @@ func cmdServe(args []string) {
 	}
 	defer ln.Close()
 
+	// 只读已有报告；绝不自动盘点（盘点耗时，仅在用户显式触发时进行）
 	current := currentReportPath()
-	if _, err := os.Stat(current); os.IsNotExist(err) {
-		fmt.Println("首次运行，正在盘点本机…")
-		if _, err := runScan(current, nil); err != nil {
-			fmt.Fprintln(os.Stderr, "盘点失败:", err)
-			os.Exit(1)
-		}
-	}
 
 	sub, _ := fs.Sub(webFS, "web")
 	mux := http.NewServeMux()
@@ -159,7 +153,7 @@ func cmdServe(args []string) {
 		}
 		data, err := os.ReadFile(current)
 		if err != nil {
-			writeJSON(w, http.StatusNotFound, map[string]string{"error": "暂无报告，请先 POST /api/scan 盘点"})
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": "还没有盘点数据：请在页面右上角点「重新盘点」开始首次盘点"})
 			return
 		}
 		w.Write(data)

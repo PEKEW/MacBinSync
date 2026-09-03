@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -29,9 +30,11 @@ func usage() {
 	fmt.Println(`macsync — 本机工具/配置盘点 + Web 可视化
 
 用法:
-  macsync scan [--out PATH]   盘点本机并输出 JSON 报告
-                              (默认 ~/.macsync/current.json)
-  macsync serve [--port N]    启动 Web 界面 (默认端口 8787)
+  macsync scan [--out PATH] [--html FILE] [--open]
+                              盘点本机；默认输出 ~/.macsync/current.json
+                              --html FILE 额外生成单文件 HTML 快照（双击可看）
+                              --open      生成后自动在浏览器打开（需配合 --html）
+  macsync serve [--port N]    启动 Web 界面 (默认端口 8787；只读缓存，不自动盘点)
   macsync version             显示版本`)
 }
 
@@ -89,6 +92,8 @@ func newProgressPrinter() func(scanStep) {
 
 func cmdScan(args []string) {
 	out := currentReportPath()
+	htmlOut := ""
+	openAfter := false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--out":
@@ -96,6 +101,13 @@ func cmdScan(args []string) {
 				out = args[i+1]
 				i++
 			}
+		case "--html":
+			if i+1 < len(args) {
+				htmlOut = args[i+1]
+				i++
+			}
+		case "--open":
+			openAfter = true
 		}
 	}
 	host, _ := os.Hostname()
@@ -105,6 +117,18 @@ func cmdScan(args []string) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "扫描失败:", err)
 		os.Exit(1)
+	}
+	if htmlOut != "" {
+		if err := exportStaticHTML(rep, htmlOut); err != nil {
+			fmt.Fprintln(os.Stderr, "HTML 导出失败:", err)
+			os.Exit(1)
+		}
+		fmt.Printf("\nHTML 快照已生成 → %s（双击即可打开，无需启动服务）\n", htmlOut)
+		if openAfter {
+			if err := exec.Command("open", htmlOut).Run(); err != nil {
+				fmt.Fprintln(os.Stderr, "自动打开失败，请手动打开文件")
+			}
+		}
 	}
 	fmt.Printf("\n扫描完成 → %s（总耗时 %v）\n", out, time.Since(start).Round(time.Millisecond))
 	fmt.Printf("  机器: %s · %s %s · %s\n", rep.Machine.Hostname, rep.Machine.OSName, rep.Machine.OSVer, rep.Machine.Chip)

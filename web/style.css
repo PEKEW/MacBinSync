@@ -212,6 +212,15 @@ button.danger-ghost:hover { background: rgba(248, 81, 73, .15); }
 .sync-status.on { background: rgba(63, 185, 80, .12); color: var(--green); }
 .sync-status.off { background: rgba(248, 81, 73, .12); color: var(--red); }
 
+.empty-state { text-align: center; padding: 70px 20px; }
+.empty-state .empty-icon { font-size: 46px; margin-bottom: 14px; }
+.empty-state h2 { font-size: 18px; margin-bottom: 12px; }
+.empty-state p { color: var(--muted); font-size: 13px; line-height: 1.9; margin-bottom: 22px; }
+.empty-state code { background: var(--panel2); padding: 1px 6px; border-radius: 4px; font-family: ui-monospace, Menlo, monospace; }
+
+/* 离线快照（scan --html 导出）隐藏依赖服务器的按钮 */
+body.offline #sync-btn, body.offline #queue-btn { display: none; }
+
 .hidden { display: none !important; }
 
 footer {

@@ -18,12 +18,16 @@ cd ~/macsync
 
 # 2) 盘点本机 → ~/.macsync/current.json + reports/<主机名>.json
 ./macsync scan
+#    可选：同时生成单文件 HTML 快照（双击即可打开，无需启动服务）
+./macsync scan --html ~/Desktop/macsync-快照.html --open
 
 # 3) 启动 Web 界面（默认 127.0.0.1:8787）
 ./macsync serve            # 可选 --port N
 ```
 
 停止服务：`pkill -f "macsync serve"`（也可直接 Ctrl+C）。
+
+**缓存策略（重要）**：`serve` **启动和打开页面都不会自动盘点**——只读缓存文件 `~/.macsync/current.json`，瞬时出数据；只有点页面右上角「↻ 重新盘点」或 `POST /api/report` 才触发新扫描（首次无数据时页面会显示引导按钮）。`macsync scan --html FILE` 可导出**自包含 HTML 快照**（内嵌数据，离线模式隐藏同步/队列按钮，双击即看）。
 
 **端口占用自动处理**（`serve` 启动时）：
 - 占着端口的若是**旧的 macsync 实例** → 自动停止它并接管，无需手动找进程
@@ -167,7 +171,7 @@ cd ~/macsync
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| GET/POST | `/api/report` | GET 取当前报告；POST 重新盘点并返回 |
+| GET/POST | `/api/report` | GET 取缓存报告（无数据返回 404+引导）；POST 显式重新盘点并返回 |
 | GET/POST | `/api/queue` | GET 取队列；POST `{source,name}` 加入（去重） |
 | POST | `/api/queue/remove` | `{source,name}` 移出队列 |
 | POST | `/api/uninstall` | `{source,name}` 执行卸载，返回 `{ok, output, error?}` |

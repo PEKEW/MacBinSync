@@ -2,6 +2,9 @@
 (function () {
   "use strict";
 
+  // 离线模式：scan --html 导出的单文件快照（内嵌 __MACSYNC_REPORT__，无需服务器）
+  const OFFLINE = typeof window.__MACSYNC_REPORT__ !== "undefined";
+
   const $ = (sel) => document.querySelector(sel);
   const content = $("#content");
 
@@ -476,6 +479,10 @@
   $("#sync-btn").addEventListener("click", openSyncModal);
 
   $("#refresh").addEventListener("click", async () => {
+    if (OFFLINE) {
+      toast("这是静态快照，无法在线盘点。更新请重新运行: macsync scan --html <文件> --open", false);
+      return;
+    }
     content.innerHTML = `<div class="loading">正在重新盘点本机（brew / uv / 运行时 / 应用 / 配置）…</div>`;
     await rescan();
   });
@@ -501,13 +508,43 @@
   });
 
   // ---------- 初始加载 ----------
-  Promise.all([
-    fetch("/api/report").then((r) => (r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))),
-    fetch("/api/queue").then((r) => r.json()),
-  ])
-    .then(([rep, q]) => { report = rep; queue = q; if (!Array.isArray(queue.items)) queue.items = []; render(); renderQueueBadge(); })
-    .catch((err) => {
-      content.innerHTML = `<div class="loading">加载失败: ${esc(err.message)}<br><br>
-        <span style="color:var(--muted)">试试点右上角「重新盘点」</span></div>`;
-    });
+  if (OFFLINE) {
+    document.body.classList.add("offline");
+    report = window.__MACSYNC_REPORT__;
+    queue = { items: [] };
+    render();
+    renderQueueBadge();
+  } else {
+    fetch("/api/report")
+      .then(async (r) => {
+        if (r.status === 404) {
+          content.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🔍</div>
+              <h2>还没有盘点数据</h2>
+              <p>首次盘点约需 10–20 秒（brew 版本检查较慢）。<br>
+                 盘点结果会缓存为 <code>~/.macsync/current.json</code>，<br>
+                 <b>之后打开本页面直接读取缓存，不会重新扫描</b>；只有点「重新盘点」才会更新。</p>
+              <button id="first-scan" class="primary">开始首次盘点</button>
+            </div>`;
+          const btn = $("#first-scan");
+          if (btn) btn.addEventListener("click", firstScan);
+          return null;
+        }
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then((rep) => {
+        if (rep) { report = rep; render(); renderQueueBadge(); }
+      })
+      .catch((err) => {
+        content.innerHTML = `<div class="loading">加载失败: ${esc(err.message)}<br><br>
+          <span style="color:var(--muted)">试试点右上角「重新盘点」</span></div>`;
+      });
+  }
+
+  function firstScan() {
+    content.innerHTML = `<div class="loading">首次盘点中（约 10–20 秒）…</div>`;
+    rescan();
+  }
 })();
