@@ -190,9 +190,18 @@ cd ~/macsync
 - 同步冲突可视化（本地/远端改动冲突时展示）
 - 只同步 leaves（期望状态），依赖交给 brew 自己解析（UI 已为此分层）
 
-### M2 搜索（已搁置，用户要求先做交互；场景=发现自己没有的工具）
-- 数据源：Homebrew API（`formulae.brew.sh/api/formula.json` + `cask.json`）、PyPI（uv）、npm registry、aqua-registry、GitHub Releases
+### M2 搜索（暂未开工；场景=发现自己没有的工具）
+- **数据源已定案**（与 Homebrew 官方 GUI [BrewUI](https://github.com/Homebrew/BrewUI) 保持一致，保证信息对齐）：
+  - Homebrew：`formulae.brew.sh/api/formula.json` + `cask.json`（描述/版本/依赖/热度）
+  - Python CLI（uv）：PyPI JSON API；npm 全局：`registry.npmjs.org`；通用 CLI：aqua-registry
 - 搜到 → 一键「安装到本机」/「加入同步队列」
+
+### 与 Homebrew 官方 GUI（BrewUI）的关系
+[BrewUI](https://github.com/Homebrew/BrewUI) 是 Homebrew 官方 macOS GUI（Swift 6 + SwiftUI 原生 App，AGPL-3.0，要求 macOS 26+，`brew install --cask homebrew-app`）。
+
+- **不融合代码**：技术栈不同（原生 App vs Go+Web）；AGPL-3.0 含网络使用条款，引入会强制本项目整体改许可；且它只覆盖 Homebrew 子集
+- **协同点**：M2 搜索采用同一套 Homebrew JSON API（信息一致）；需要时可在本项目加「Homebrew 管理」入口（未装则 `brew install --cask homebrew-app`，已装则 `open -a Homebrew`）——注意 BrewUI 无 URL scheme，只能到"打开 App"级别
+- **分工**：BrewUI 管 brew 本地安装/升级/诊断（原生体验）；macsync 管跨源盘点（brew+uv+npm+cargo+local-bin+GUI 应用+配置）+ 多机同步 + 离线快照
 
 ### M4 打磨
 - 配置同步：git 仓库 + 软链（已定决策）；密钥目录用 chezmoi/age 加密
@@ -211,6 +220,8 @@ cd ~/macsync
 | 配置同步 | **git 仓库 + 软链**（先快速跑通，遇密钥/模板需求再引入 chezmoi） |
 | 卸载语义 | brew/uv/npm 走官方卸载命令；GUI 应用**移废纸篓**而非删除 |
 | UI 层次 | brew 区：leaves 主展示、依赖默认折叠 |
+| M2 搜索数据源 | **Homebrew JSON API**（`formulae.brew.sh`，与官方 GUI BrewUI 一致）+ PyPI/npm/aqua |
+| 与 BrewUI 的关系 | **不融合代码**（技术栈 + AGPL 网络条款），仅数据源对齐与（可选）入口联动 |
 
 ---
 
@@ -243,3 +254,11 @@ cd ~/macsync
 - 已交付：M0 盘点 + M1 仪表盘 + 卸载/队列交互（4 个提交，全部验证通过）
 - 用户当前关注：进度存档、可冷启动（即本 README 的意义）
 - 已知遗留：aerospace 已卸载；`nikitabobko/tap` 未信任；沙箱服务不能执行删除类操作（用户需自己起服务）
+
+---
+
+## 许可证
+
+[MIT](LICENSE) © 2026 PEKEW
+
+（第三方工具的使用说明：本项目通过命令行调用 `brew`/`uv`/`npm`/`git`/`gh`，不包含其代码；参考项目 [BrewUI](https://github.com/Homebrew/BrewUI) 为 AGPL-3.0，本项目未使用其源码。）
