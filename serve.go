@@ -283,6 +283,55 @@ func cmdServe(args []string) {
 		writeJSON(w, http.StatusOK, res)
 	})
 
+	// M2 搜索：GET /api/search?q=xxx[&limit=30][&refresh=1]
+	mux.HandleFunc("/api/search", func(w http.ResponseWriter, r *http.Request) {
+		q := strings.TrimSpace(r.URL.Query().Get("q"))
+		if q == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "缺少查询参数 q"})
+			return
+		}
+		limit := 30
+		if v, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && v > 0 && v <= 100 {
+			limit = v
+		}
+		refresh := r.URL.Query().Get("refresh") == "1"
+		results, notes, loadedAt, count := searchAllSources(q, limit, refresh)
+		writeJSON(w, http.StatusOK, map[string]any{
+			"query":   q,
+			"results": results,
+			"notes":   notes,
+			"index": map[string]any{
+				"count":     count,
+				"loaded_at": loadedAt,
+			},
+		})
+	})
+
+	// 一键安装
+	mux.HandleFunc("/api/install", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "仅支持 POST"})
+			return
+		}
+		var req struct {
+			Source string `json:"source"`
+			Name   string `json:"name"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求体无效"})
+			return
+		}
+		if req.Source == "" || req.Name == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "source 和 name 不能为空"})
+			return
+		}
+		if !installable[req.Source] {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "该来源不支持一键安装: " + req.Source})
+			return
+		}
+		writeJSON(w, http.StatusOK, runInstall(req.Source, req.Name))
+	})
+
 	fmt.Printf("macsync Web 界面已启动 → http://%s\n", addr)
 	fmt.Println("按 Ctrl+C 停止。")
 	if err := http.Serve(ln, mux); err != nil {

@@ -219,7 +219,30 @@ button.danger-ghost:hover { background: rgba(248, 81, 73, .15); }
 .empty-state code { background: var(--panel2); padding: 1px 6px; border-radius: 4px; font-family: ui-monospace, Menlo, monospace; }
 
 /* 离线快照（scan --html 导出）隐藏依赖服务器的按钮 */
-body.offline #sync-btn, body.offline #queue-btn { display: none; }
+body.offline #sync-btn, body.offline #queue-btn, body.offline #search-btn { display: none; }
+
+/* M2 搜索视图 */
+.search-head { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.search-head input {
+  flex: 1; min-width: 240px; padding: 10px 14px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--panel2); color: var(--text); font-size: 14px; outline: none;
+}
+.search-head input:focus { border-color: var(--accent); }
+.search-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip.active { border-color: var(--accent); color: var(--accent); background: rgba(88, 166, 255, .12); }
+.note {
+  background: rgba(210, 153, 34, .1); border: 1px solid rgba(210, 153, 34, .35);
+  color: var(--yellow); border-radius: 8px; padding: 8px 12px;
+  font-size: 12px; margin-bottom: 10px;
+}
+.spin { color: var(--accent); }
+td.desc { color: var(--muted); max-width: 380px; font-size: 12px; }
+td.ops { white-space: nowrap; }
+td.ops button { margin-right: 6px; }
+tr .tag.dep { margin-left: 0; }
+.pop { color: var(--muted); font-size: 11px; margin-left: 4px; white-space: nowrap; }
+h3.section-title { margin: 14px 0 6px; color: var(--muted); font-size: 13px; }
 
 .hidden { display: none !important; }
 

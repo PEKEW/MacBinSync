@@ -32,6 +32,12 @@
     return new Date(t).toLocaleString("zh-CN", { hour12: false });
   }
 
+  // 安装量：>=1万 显示为 "3.8万"
+  function fmtCount(n) {
+    if (!n) return "";
+    return n >= 10000 ? (n / 10000).toFixed(1) + "万" : n.toLocaleString();
+  }
+
   let report = null;
   let queue = { items: [] };
   let currentItem = null; // 弹窗当前操作对象 {source, name, label}
@@ -477,6 +483,7 @@
 
   $("#queue-btn").addEventListener("click", openQueueModal);
   $("#sync-btn").addEventListener("click", openSyncModal);
+  $("#search-btn").addEventListener("click", openSearchView);
 
   $("#refresh").addEventListener("click", async () => {
     if (OFFLINE) {
@@ -507,6 +514,197 @@
     if (e.target === $("#modal")) closeModal();
   });
 
+  // ---------- M2 搜索 ----------
+
+  const SOURCE_LABEL = {
+    "brew-formula": "formula",
+    "brew-cask": "cask",
+    "npm": "npm",
+    "pypi": "PyPI",
+  };
+
+  let searchState = { q: "", results: [], notes: [], index: null, filter: "all", loading: false };
+
+  function openSearchView() {
+    content.innerHTML = `
+      <div class="search-head">
+        <input id="search-input" type="search" placeholder="搜索可安装的工具：brew formula / cask / npm / PyPI 包名…" value="${esc(searchState.q)}" autocomplete="off">
+        <button id="search-go" class="primary">搜索</button>
+        <button id="search-refresh" title="重新下载 Homebrew 索引（约 12MB）">刷新索引</button>
+        <button id="search-back" class="ghost">← 返回盘点</button>
+      </div>
+      <div id="search-meta" class="hint"></div>
+      <div id="search-filters" class="search-filters"></div>
+      <div id="search-notes"></div>
+      <div id="search-results"></div>`;
+
+    $("#search-go").addEventListener("click", () => doSearch(false));
+    $("#search-refresh").addEventListener("click", () => doSearch(true));
+    $("#search-back").addEventListener("click", backToDashboard);
+    $("#search-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doSearch(false);
+    });
+    $("#search-input").focus();
+    renderSearchState();
+  }
+
+  function backToDashboard() {
+    if (report) { render(); return; }
+    content.innerHTML = emptyStateHTML();
+    const btn = $("#first-scan");
+    if (btn) btn.addEventListener("click", firstScan);
+  }
+
+  async function doSearch(refresh) {
+    const input = $("#search-input");
+    const q = (input ? input.value : "").trim();
+    if (!q) { toast("请输入搜索关键词", false); return; }
+    const go = $("#search-go");
+    searchState.q = q;
+    searchState.loading = true;
+    searchState.filter = "all";
+    if (go) { go.disabled = true; go.textContent = "搜索中…"; }
+    renderSearchState();
+    try {
+      const data = await (await fetch(`/api/search?q=${encodeURIComponent(q)}${refresh ? "&refresh=1" : ""}`)).json();
+      searchState.results = data.results || [];
+      searchState.notes = data.notes || [];
+      searchState.index = data.index || null;
+    } catch (err) {
+      searchState.results = [];
+      searchState.notes = ["搜索请求失败: " + err.message];
+    } finally {
+      searchState.loading = false;
+      if (go) { go.disabled = false; go.textContent = "搜索"; }
+      renderSearchState();
+    }
+  }
+
+  function renderSearchState() {
+    const meta = $("#search-meta");
+    if (!meta) return;
+
+    const idx = searchState.index;
+    if (searchState.loading) {
+      meta.innerHTML = idx && idx.count
+        ? `<span class="spin">正在搜索…</span>`
+        : `<span class="spin">首次搜索正在下载 Homebrew 索引（约 12MB），可能需要 10–60 秒…</span>`;
+    } else if (idx && idx.count) {
+      meta.innerHTML = `Homebrew 索引 ${idx.count.toLocaleString()} 条 · 更新于 ${idx.loaded_at ? fmtTime(idx.loaded_at) : "-"} · 结果 ${searchState.results.length} 条`;
+    } else if (!searchState.q) {
+      meta.innerHTML = `输入关键词开始搜索。<b>Homebrew</b> 用本地索引（首次约 12MB，之后毫秒级）；<b>npm</b> 实时搜索；<b>PyPI</b> 需精确包名。`;
+    } else {
+      meta.innerHTML = "";
+    }
+
+    $("#search-notes").innerHTML = (searchState.notes || [])
+      .map((n) => `<div class="note">⚠️ ${esc(n)}</div>`)
+      .join("");
+
+    const counts = {};
+    searchState.results.forEach((r) => { counts[r.source] = (counts[r.source] || 0) + 1; });
+    const chips = [["all", `全部 (${searchState.results.length})`]].concat(
+      Object.keys(counts).sort().map((s) => [s, `${SOURCE_LABEL[s] || s} (${counts[s]})`])
+    );
+    const filters = $("#search-filters");
+    filters.innerHTML = searchState.results.length
+      ? chips.map(([k, label]) =>
+          `<span class="chip clickable ${searchState.filter === k ? "active" : ""}" data-filter="${esc(k)}">${esc(label)}</span>`
+        ).join("")
+      : "";
+    filters.querySelectorAll("[data-filter]").forEach((el) =>
+      el.addEventListener("click", () => { searchState.filter = el.dataset.filter; renderSearchState(); })
+    );
+
+    const box = $("#search-results");
+    let list = searchState.results;
+    if (searchState.filter !== "all") list = list.filter((r) => r.source === searchState.filter);
+
+    if (!list.length) {
+      box.innerHTML = (!searchState.loading && searchState.q)
+        ? `<div class="empty">没有找到「${esc(searchState.q)}」相关结果${
+            SOURCE_LABEL ? "（PyPI 需精确包名，npm/brew 支持模糊搜索）" : ""
+          }</div>`
+        : "";
+      return;
+    }
+
+    box.innerHTML = `<table><thead><tr><th>名称</th><th>版本</th><th>说明</th><th>来源 / 状态</th><th>操作</th></tr></thead><tbody>${
+      list.map((r) => {
+        const dep = r.deprecated ? '<span class="tag outdated">已废弃</span>' : "";
+        const aliasTag = r.alias ? `<span class="tag dep">别名 ${esc(r.alias)}</span>` : "";
+        const label = r.display
+          ? `${esc(r.display)} <small class="mono">${esc(r.name)}</small>`
+          : esc(r.name);
+        const status = r.installed
+          ? '<span class="sync-status on">已安装</span>'
+          : '<span class="sync-status off">未安装</span>';
+        const pop = r.popular ? `<span class="pop">30天 ${fmtCount(r.popular)}</span>` : "";
+        const queued = inQueue({ source: r.source, name: r.name });
+        const sel = JSON.stringify({ source: r.source, name: r.name }).replace(/'/g, "&#39;");
+        const actions = [
+          r.installed ? "" : `<button class="small primary" data-install='${sel}'>安装</button>`,
+          `<button class="small ${queued ? "danger-ghost" : ""}" data-queue='${sel}'>${queued ? "移出队列" : "入队"}</button>`,
+        ].filter(Boolean).join(" ");
+        return `<tr>
+          <td class="name">${label}${aliasTag}${dep}</td>
+          <td class="mono">${esc(r.version)}</td>
+          <td class="desc">${esc(r.desc)}</td>
+          <td><span class="tag dep">${esc(SOURCE_LABEL[r.source] || r.source)}</span> ${status} ${pop}</td>
+          <td class="ops">${actions}</td>
+        </tr>`;
+      }).join("")
+    }</tbody></table>`;
+
+    bindSearchActions();
+  }
+
+  function bindSearchActions() {
+    document.querySelectorAll("[data-install]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const item = JSON.parse(btn.dataset.install);
+        if (!window.confirm(`安装「${item.name}」？\n来源: ${SOURCE_LABEL[item.source] || item.source}`)) return;
+        btn.disabled = true;
+        btn.textContent = "安装中…";
+        try {
+          const res = await postJSON("/api/install", item);
+          if (res.ok) {
+            toast("已安装: " + item.name + "（点「重新盘点」可刷新盘点数据）");
+            searchState.results.forEach((r) => {
+              if (r.source === item.source && r.name === item.name) r.installed = true;
+            });
+          } else {
+            toast("安装失败: " + extractErr(res), false);
+          }
+        } catch (err) {
+          toast("安装请求失败: " + err.message, false);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "安装";
+          renderSearchState();
+        }
+      })
+    );
+    document.querySelectorAll("[data-queue]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const item = JSON.parse(btn.dataset.queue);
+        try {
+          if (inQueue(item)) {
+            queue = await postJSON("/api/queue/remove", item);
+            toast("已移出同步队列: " + item.name);
+          } else {
+            queue = await postJSON("/api/queue", item);
+            toast("已加入同步队列: " + item.name);
+          }
+          renderQueueBadge();
+          renderSearchState();
+        } catch (err) {
+          toast("操作失败: " + err.message, false);
+        }
+      })
+    );
+  }
+
   // ---------- 初始加载 ----------
   if (OFFLINE) {
     document.body.classList.add("offline");
@@ -518,15 +716,7 @@
     fetch("/api/report")
       .then(async (r) => {
         if (r.status === 404) {
-          content.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">🔍</div>
-              <h2>还没有盘点数据</h2>
-              <p>首次盘点约需 10–20 秒（brew 版本检查较慢）。<br>
-                 盘点结果会缓存为 <code>~/.macsync/current.json</code>，<br>
-                 <b>之后打开本页面直接读取缓存，不会重新扫描</b>；只有点「重新盘点」才会更新。</p>
-              <button id="first-scan" class="primary">开始首次盘点</button>
-            </div>`;
+          content.innerHTML = emptyStateHTML();
           const btn = $("#first-scan");
           if (btn) btn.addEventListener("click", firstScan);
           return null;
@@ -541,6 +731,18 @@
         content.innerHTML = `<div class="loading">加载失败: ${esc(err.message)}<br><br>
           <span style="color:var(--muted)">试试点右上角「重新盘点」</span></div>`;
       });
+  }
+
+  function emptyStateHTML() {
+    return `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h2>还没有盘点数据</h2>
+        <p>首次盘点约需 10–20 秒（brew 版本检查较慢）。<br>
+           盘点结果会缓存为 <code>~/.macsync/current.json</code>，<br>
+           <b>之后打开本页面直接读取缓存，不会重新扫描</b>；只有点「重新盘点」才会更新。</p>
+        <button id="first-scan" class="primary">开始首次盘点</button>
+      </div>`;
   }
 
   function firstScan() {

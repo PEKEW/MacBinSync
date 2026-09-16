@@ -178,6 +178,8 @@ cd ~/macsync
 | GET/POST | `/api/config` | GET 取同步配置；POST `{github_repo}` 保存 |
 | POST | `/api/sync/test` | 测试 GitHub 连接（gh 认证/仓库可达性） |
 | POST | `/api/sync` | `{direction:"push"\|"pull"}` 执行同步 |
+| GET | `/api/search` | `?q=xxx[&limit=30][&refresh=1]` 多源搜索，返回 `{results, notes, index}` |
+| POST | `/api/install` | `{source,name}` 一键安装（brew-formula / brew-cask / npm / pypi） |
 | GET | `/api/health` | 健康检查 |
 
 ---
@@ -190,11 +192,19 @@ cd ~/macsync
 - 同步冲突可视化（本地/远端改动冲突时展示）
 - 只同步 leaves（期望状态），依赖交给 brew 自己解析（UI 已为此分层）
 
-### M2 搜索（暂未开工；场景=发现自己没有的工具）
-- **数据源已定案**（与 Homebrew 官方 GUI [BrewUI](https://github.com/Homebrew/BrewUI) 保持一致，保证信息对齐）：
-  - Homebrew：`formulae.brew.sh/api/formula.json` + `cask.json`（描述/版本/依赖/热度）
-  - Python CLI（uv）：PyPI JSON API；npm 全局：`registry.npmjs.org`；通用 CLI：aqua-registry
-- 搜到 → 一键「安装到本机」/「加入同步队列」
+### ✅ 已完成：M2 搜索（多源发现 + 一键安装/入队）
+- **入口**：顶部「🔍 搜索」按钮 → 切换到搜索视图（「← 返回盘点」切回）
+- **数据源**（与 Homebrew 官方 GUI BrewUI 一致）：
+  - **Homebrew formula + cask**：拉 `formulae.brew.sh` 索引（16,192 条）→ 裁剪缓存 24h 到 `~/.macsync/cache/brew-index.json`（2.5MB）。首次搜索约 2–3 秒（下载约 12MB），之后毫秒级
+  - **近 30 天安装量**（analytics API：formula + cask 两份）参与排序，热门包优先
+  - **别名支持**：`nvim`→neovim、`rg`→ripgrep、`golang`→go、`nodejs`→node、`python`→python@3.14（249 个 formula 有别名，命中时显示「别名 xxx」）
+  - **npm**：`registry.npmjs.org` 实时搜索（15 条）
+  - **PyPI**：精确包名查询（PyPI 无搜索接口，模糊查询不命中）
+- **排序规则**：名称/别名精确 > 名称前缀或显示名词首前缀（如 "Google Chrome" 搜 chrome）> 别名前缀 > 名称包含 > 显示名包含 > 描述包含；同层按 30 天安装量降序，再按名称
+- **结果呈现**：名称（cask 显示友好名 + token）、版本、描述、来源标签、**本机已安装状态**、30 天安装量（如 `30天 3.8万`）
+- **操作**：「安装」（`brew install` / `brew install --cask` / `npm i -g` / `uv tool install`）与「入队 / 移出队列」
+- 缓存带结构版本号（`brewIndexVersion`），结构变更时旧缓存自动失效重下
+- 实测：`chrome`→Google Chrome 第一（16,370/30天）；`nvim`→neovim；`rg`→ripgrep；`python`→python@3.14；已装状态识别正确（fd / node / uv / ripgrep / neovim）
 
 ### 与 Homebrew 官方 GUI（BrewUI）的关系
 [BrewUI](https://github.com/Homebrew/BrewUI) 是 Homebrew 官方 macOS GUI（Swift 6 + SwiftUI 原生 App，AGPL-3.0，要求 macOS 26+，`brew install --cask homebrew-app`）。
@@ -245,7 +255,7 @@ cd ~/macsync
    - 26 个 brew leaves / 4 cask / 3 tap；uv 工具：synto 0.7.0、kimi-cli 1.49.0；node 实际走 nvm v20.20.2；claude/codex 是 npm 全局包
    - 配置目录：`~/.config/{nvim,fish,synto,...}`、`~/.claude`、`~/.codex`、`~/.kimi`、`~/.aerospace.toml`（aerospace 已卸载但配置在）
    - 沙箱环境 PATH 极简（`/usr/bin:/bin:/usr/sbin:/sbin`），所有命令要显式用 `/opt/homebrew/bin/xxx`
-6. **下一个任务**：按用户要求 **M3 多机同步**（见未来计划）。注意用户搁置了 M2 搜索
+6. **下一个任务**：M3 剩余增强（多机 diff 视图 / `manifest.yaml` + apply / 冲突可视化）或 M4 打磨（配置同步 + 密钥加密、launchd 定时扫描）
 7. **沟通风格**：用户用中文交流；重要功能变更先讲清楚再动手；涉及系统级安全操作（卸载、信任 tap）需确认
 
 ### 与用户交流的上下文速览
