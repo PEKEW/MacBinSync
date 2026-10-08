@@ -332,6 +332,67 @@ func cmdServe(args []string) {
 		writeJSON(w, http.StatusOK, runInstall(req.Source, req.Name))
 	})
 
+	// 多机对比：机器列表 / 差异
+	mux.HandleFunc("/api/machines", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"machines": emptyIfNil(listMachines())})
+	})
+
+	mux.HandleFunc("/api/diff", func(w http.ResponseWriter, r *http.Request) {
+		base := r.URL.Query().Get("base")
+		target := r.URL.Query().Get("target")
+		if base == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "缺少 base 参数（参照机器）"})
+			return
+		}
+		res, err := computeDiff(base, target)
+		if err != nil {
+			writeJSON(w, http.StatusOK, map[string]string{"error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, res)
+	})
+
+	// 批量安装到本机（后台任务）
+	mux.HandleFunc("/api/apply", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "仅支持 POST"})
+			return
+		}
+		var req struct {
+			Items []QueueItem `json:"items"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "请求体无效"})
+			return
+		}
+		var todo []QueueItem
+		for _, it := range req.Items {
+			if it.Source == "" || it.Name == "" {
+				continue
+			}
+			if !installable[it.Source] {
+				writeJSON(w, http.StatusBadRequest, map[string]string{
+					"error": "该来源不支持自动安装: " + it.Source + " / " + it.Name,
+				})
+				return
+			}
+			todo = append(todo, it)
+		}
+		if len(todo) == 0 {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "没有可安装的项目"})
+			return
+		}
+		if !startApply(todo) {
+			writeJSON(w, http.StatusConflict, map[string]string{"error": "已有安装任务在进行中，请稍候"})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"started": true, "total": len(todo)})
+	})
+
+	mux.HandleFunc("/api/apply/status", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, applyStatus())
+	})
+
 	fmt.Printf("macsync Web 界面已启动 → http://%s\n", addr)
 	fmt.Println("按 Ctrl+C 停止。")
 	if err := http.Serve(ln, mux); err != nil {

@@ -179,16 +179,30 @@ cd ~/macsync
 | POST | `/api/sync/test` | 测试 GitHub 连接（gh 认证/仓库可达性） |
 | POST | `/api/sync` | `{direction:"push"\|"pull"}` 执行同步 |
 | GET | `/api/search` | `?q=xxx[&limit=30][&refresh=1]` 多源搜索，返回 `{results, notes, index}` |
-| POST | `/api/install` | `{source,name}` 一键安装（brew-formula / brew-cask / npm / pypi） |
+| POST | `/api/install` | `{source,name}` 一键安装（brew-formula / brew-cask / npm / pypi / uv） |
+| GET | `/api/machines` | 列出本机 + 所有已同步快照的机器 |
+| GET | `/api/diff` | `?base=<host>&target=<host>` 计算两机差异（含可安装性判断） |
+| POST | `/api/apply` | `{items:[{source,name}]}` 启动后台批量安装任务 |
+| GET | `/api/apply/status` | 查询安装任务进度（running/index/current/results） |
 | GET | `/api/health` | 健康检查 |
 
 ---
 
 ## 未来计划
 
-### M3 剩余（GitHub 同步 v1 已完成，以下是后续增强）
-- **多机 diff 视图**：A↔B 对比（`reports/` 下多份快照），"A 有 fd 而 B 没有" → 一键入 manifest / 入队列
-- `manifest.yaml` 期望状态（brew/uv/npm 清单 + 配置文件列表），apply 一键装缺失项
+### ✅ 已完成：多机对比 + 一键安装缺失项（apply）
+- **入口**：顶部「⇄ 对比」按钮 → 选择「参照机 ⇢ 目标机」（默认另一台 ⇢ 本机）
+- **差异计算**：读取 `~/.macsync/reports/*.json`（各机快照），按分类对比：
+  - brew formula（只比 **leaves**，忽略依赖）/ brew cask / uv 工具 / npm 全局 / GUI 应用 / 配置文件
+  - 双向：`参照有·目标没有`（要装/入队）与 `目标有·参照没有`（可反向同步）
+- **GUI 应用智能匹配 cask**：应用名归一化后匹配 Homebrew cask（`OmniWM` → `omniwm`、`Microsoft Edge` → `microsoft-edge`），匹配上即**可自动安装**；匹配不到（App Store 应用如 Keynote、GarageBand）标记「需手动」
+- **操作**：勾选 +「安装所选到本机」→ `POST /api/apply` 启动**后台任务**（顺序安装），前端每 1.5s 轮询显示进度条 + 逐项结果；「所选加入队列」/「全部加入队列」把差异交给另一台机器
+- 安装完成后服务端**自动重新盘点**；目标机不是本机时安装按钮自动隐藏（只能入队）
+- **实测**（mini ⇢ Air 快照）：54 项差异，26 项可自动安装；`OmniWM 0.7.4` → cask `omniwm 0.7.5` ✓；Keynote/GarageBand/iMovie 正确标记需手动
+- 已知限制：安装/卸载需**从自己终端启动的服务**（沙箱内启动的服务写不了 `/opt/homebrew`，报 `/opt/homebrew/Cellar is not writable`）
+
+### M3 剩余（同步 v1 + 对比/安装已完成，以下是后续增强）
+- `manifest.yaml` 期望状态（把队列升级为"目标状态"，幂等 apply）
 - 同步冲突可视化（本地/远端改动冲突时展示）
 - 只同步 leaves（期望状态），依赖交给 brew 自己解析（UI 已为此分层）
 

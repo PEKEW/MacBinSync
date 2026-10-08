@@ -468,6 +468,7 @@ var installable = map[string]bool{
 	"brew-cask":    true,
 	"npm":          true,
 	"pypi":         true,
+	"uv":           true,
 }
 
 func runInstall(source, name string) ActionResult {
@@ -486,7 +487,7 @@ func runInstall(source, name string) ActionResult {
 			return ActionResult{OK: false, Output: out, Error: err.Error()}
 		}
 		return ActionResult{OK: true, Output: out}
-	case "pypi":
+	case "pypi", "uv":
 		return runAction("uv", "tool", "install", name)
 	default:
 		return ActionResult{OK: false, Error: fmt.Sprintf("不支持的来源: %s", source)}

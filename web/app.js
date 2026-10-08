@@ -484,6 +484,7 @@
   $("#queue-btn").addEventListener("click", openQueueModal);
   $("#sync-btn").addEventListener("click", openSyncModal);
   $("#search-btn").addEventListener("click", openSearchView);
+  $("#diff-btn").addEventListener("click", openDiffView);
 
   $("#refresh").addEventListener("click", async () => {
     if (OFFLINE) {
@@ -703,6 +704,267 @@
         }
       })
     );
+  }
+
+  // ---------- 多机对比 + 一键安装缺失项 ----------
+
+  const DIFF_SOURCE_LABEL = {
+    "brew-formula": "formula",
+    "brew-cask": "cask",
+    "uv": "uv",
+    "npm": "npm",
+    "app": "GUI 应用",
+    "config": "配置",
+  };
+
+  let diffState = {
+    machines: [], base: "", target: "", data: null,
+    filter: "all", selected: new Set(), pollTimer: null,
+  };
+
+  function openDiffView() {
+    content.innerHTML = `
+      <div class="diff-head">
+        <span class="diff-label">参照</span>
+        <select id="diff-base"></select>
+        <span class="diff-arrow">⇢</span>
+        <span class="diff-label">目标</span>
+        <select id="diff-target"></select>
+        <button id="diff-back" class="ghost">← 返回盘点</button>
+      </div>
+      <div id="diff-meta" class="hint"></div>
+      <div id="diff-progress"></div>
+      <div id="diff-filters" class="search-filters"></div>
+      <div id="diff-body"><div class="loading">加载中…</div></div>`;
+    $("#diff-back").addEventListener("click", backToDashboard);
+
+    fetch("/api/machines")
+      .then((r) => r.json())
+      .then((d) => {
+        diffState.machines = d.machines || [];
+        if (!diffState.machines.length) {
+          $("#diff-body").innerHTML = `<div class="empty">还没有机器快照。请先在本机盘点，并在另一台机器上「☁️ 同步 → 推送」，然后本机「拉取」。</div>`;
+          return;
+        }
+        const me = diffState.machines.find((m) => m.current) || diffState.machines[0];
+        const other = diffState.machines.find((m) => !m.current) || me;
+        diffState.target = me.hostname;
+        diffState.base = other.hostname;
+
+        const opts = (sel) => diffState.machines.map((m) =>
+          `<option value="${esc(m.hostname)}"${m.hostname === sel ? " selected" : ""}>${esc(m.hostname)}${m.current ? "（本机）" : ""}</option>`
+        ).join("");
+        $("#diff-base").innerHTML = opts(diffState.base);
+        $("#diff-target").innerHTML = opts(diffState.target);
+        $("#diff-base").addEventListener("change", (e) => { diffState.base = e.target.value; diffState.selected.clear(); loadDiff(); });
+        $("#diff-target").addEventListener("change", (e) => { diffState.target = e.target.value; diffState.selected.clear(); loadDiff(); });
+        loadDiff();
+      })
+      .catch((err) => {
+        $("#diff-body").innerHTML = `<div class="empty">加载机器列表失败: ${esc(err.message)}</div>`;
+      });
+  }
+
+  async function loadDiff() {
+    $("#diff-body").innerHTML = `<div class="loading">正在对比…</div>`;
+    try {
+      const d = await (await fetch(`/api/diff?base=${encodeURIComponent(diffState.base)}&target=${encodeURIComponent(diffState.target)}`)).json();
+      if (d.error) {
+        $("#diff-body").innerHTML = `<div class="empty">${esc(d.error)}</div>`;
+        diffState.data = null;
+        return;
+      }
+      diffState.data = d;
+      renderDiff();
+    } catch (err) {
+      $("#diff-body").innerHTML = `<div class="empty">对比失败: ${esc(err.message)}</div>`;
+    }
+  }
+
+  function diffRow(it, checkable) {
+    const key = it.source + "/" + it.name;
+    const checked = diffState.selected.has(key) ? " checked" : "";
+    const box = (checkable && it.installable)
+      ? `<input type="checkbox" data-check="${esc(key)}"${checked}>`
+      : `<span class="dim">—</span>`;
+    const hint = it.hint ? `<span class="dim"> ${esc(it.hint)}</span>` : "";
+    return `<tr>
+      <td class="pick">${box}</td>
+      <td class="name">${esc(it.display || it.name)}${it.display ? ` <small class="mono">${esc(it.name)}</small>` : ""}${hint}</td>
+      <td class="mono">${esc(it.version)}</td>
+      <td><span class="tag dep">${esc(DIFF_SOURCE_LABEL[it.source] || it.source)}</span>${
+        it.installable ? "" : ' <span class="tag outdated">需手动</span>'
+      }</td>
+    </tr>`;
+  }
+
+  function renderDiff() {
+    const d = diffState.data;
+    if (!d) return;
+    const base = d.base.hostname, target = d.target.hostname;
+    const targetIsCurrent = d.target.current;
+
+    $("#diff-meta").innerHTML = `参照 <b>${esc(base)}</b>（快照 ${fmtTime(d.base.generated_at)}）→ 目标 <b>${esc(target)}</b>（快照 ${fmtTime(d.target.generated_at)}）` +
+      (targetIsCurrent ? "" : `　⚠️ 目标不是本机，只能加入队列，不能直接安装`);
+
+    const all = d.only_in_base || [];
+    const counts = {};
+    all.forEach((i) => { counts[i.source] = (counts[i.source] || 0) + 1; });
+    const chips = [["all", `全部 (${all.length})`]].concat(
+      Object.keys(counts).sort().map((s) => [s, `${DIFF_SOURCE_LABEL[s] || s} (${counts[s]})`])
+    );
+    $("#diff-filters").innerHTML = all.length
+      ? chips.map(([k, label]) =>
+          `<span class="chip clickable ${diffState.filter === k ? "active" : ""}" data-dfilter="${esc(k)}">${esc(label)}</span>`
+        ).join("")
+      : "";
+    document.querySelectorAll("[data-dfilter]").forEach((el) =>
+      el.addEventListener("click", () => { diffState.filter = el.dataset.dfilter; renderDiff(); })
+    );
+
+    let list = all;
+    if (diffState.filter !== "all") list = list.filter((i) => i.source === diffState.filter);
+    const installableCount = all.filter((i) => i.installable).length;
+    const selCount = diffState.selected.size;
+
+    const sectionA = `
+      <section>
+        <h2><span>${esc(base)} 有、${esc(target)} 没有</span><span class="badge">${all.length} 项 · 可自动安装 ${installableCount}</span></h2>
+        <div class="section-body">
+          <div class="diff-actions">
+            <button id="diff-select-all" class="ghost small">全选可安装</button>
+            <button id="diff-clear" class="ghost small">清空选择</button>
+            ${targetIsCurrent ? `<button id="diff-install" class="primary small"${selCount ? "" : " disabled"}>安装所选到本机 (${selCount})</button>` : ""}
+            <button id="diff-queue" class="small"${selCount ? "" : " disabled"}>所选加入队列 (${selCount})</button>
+          </div>
+          ${list.length
+            ? `<table><thead><tr><th class="pick"></th><th>名称</th><th>版本</th><th>来源</th></tr></thead><tbody>${
+                list.map((i) => diffRow(i, true)).join("")
+              }</tbody></table>`
+            : `<div class="empty">该分类无差异</div>`}
+        </div>
+      </section>`;
+
+    const reverse = d.only_in_target || [];
+    const sectionB = reverse.length
+      ? `<section>
+          <h2><span>${esc(target)} 有、${esc(base)} 没有（可反向同步）</span><span class="badge">${reverse.length} 项</span></h2>
+          <div class="section-body">
+            <div class="diff-actions">
+              <button id="diff-queue-all-reverse" class="small">全部加入队列 (${reverse.filter((i) => i.installable).length} 可安装项)</button>
+            </div>
+            <div class="grid">${reverse.map((i) => `<span class="chip">${esc(i.display || i.name)} <small>${esc(DIFF_SOURCE_LABEL[i.source] || i.source)}</small></span>`).join("")}</div>
+          </div>
+        </section>`
+      : "";
+
+    $("#diff-body").innerHTML = sectionA + sectionB;
+    bindDiffActions(list, reverse, targetIsCurrent);
+  }
+
+  function bindDiffActions(list, reverse, targetIsCurrent) {
+    document.querySelectorAll("[data-check]").forEach((el) =>
+      el.addEventListener("change", () => {
+        const key = el.dataset.check;
+        if (el.checked) diffState.selected.add(key); else diffState.selected.delete(key);
+        renderDiff();
+      })
+    );
+    const selBtn = $("#diff-select-all");
+    if (selBtn) selBtn.addEventListener("click", () => {
+      list.filter((i) => i.installable).forEach((i) => diffState.selected.add(i.source + "/" + i.name));
+      renderDiff();
+    });
+    const clearBtn = $("#diff-clear");
+    if (clearBtn) clearBtn.addEventListener("click", () => { diffState.selected.clear(); renderDiff(); });
+
+    const items = () => list.filter((i) => diffState.selected.has(i.source + "/" + i.name))
+      .map((i) => ({ source: i.source, name: i.name }));
+
+    const instBtn = $("#diff-install");
+    if (instBtn) instBtn.addEventListener("click", async () => {
+      const chosen = items().filter((i) => installableSource(i.source));
+      if (!chosen.length) { toast("没有可安装的选中项", false); return; }
+      if (!window.confirm(`将安装 ${chosen.length} 个软件到本机：\n${chosen.map((c) => c.name).join(", ")}\n\nbrew 安装可能较慢，请保持页面打开。`)) return;
+      try {
+        const res = await postJSON("/api/apply", { items: chosen });
+        if (res.started) { toast(`开始安装 ${res.total} 项…`); pollApply(); }
+        else toast(res.error || "启动失败", false);
+      } catch (err) { toast("启动安装失败: " + err.message, false); }
+    });
+
+    const qBtn = $("#diff-queue");
+    if (qBtn) qBtn.addEventListener("click", async () => {
+      const chosen = items();
+      let n = 0;
+      for (const it of chosen) {
+        if (inQueue(it)) continue;
+        try { queue = await postJSON("/api/queue", it); n++; } catch (e) { /* 忽略单项失败 */ }
+      }
+      renderQueueBadge();
+      toast(n ? `已加入队列 ${n} 项` : "所选项均已在队列中");
+      renderDiff();
+    });
+
+    const qAllReverse = $("#diff-queue-all-reverse");
+    if (qAllReverse) qAllReverse.addEventListener("click", async () => {
+      const chosen = reverse.filter((i) => installableSource(i.source)).map((i) => ({ source: i.source, name: i.name }));
+      let n = 0;
+      for (const it of chosen) {
+        if (inQueue(it)) continue;
+        try { queue = await postJSON("/api/queue", it); n++; } catch (e) { /* 忽略 */ }
+      }
+      renderQueueBadge();
+      toast(n ? `已加入队列 ${n} 项（可在另一台机器拉取后安装）` : "这些项均已在队列中");
+    });
+  }
+
+  function installableSource(s) {
+    return ["brew-formula", "brew-cask", "uv", "npm", "pypi"].includes(s);
+  }
+
+  // 轮询后台安装任务进度
+  function pollApply() {
+    if (diffState.pollTimer) clearInterval(diffState.pollTimer);
+    const tick = async () => {
+      let st;
+      try { st = await (await fetch("/api/apply/status")).json(); } catch (e) { return; }
+      const box = $("#diff-progress");
+      if (!box) { clearInterval(diffState.pollTimer); diffState.pollTimer = null; return; }
+      const done = (st.results || []).length;
+      if (st.running) {
+        box.innerHTML = `<div class="apply-box">
+          <div class="apply-head">正在安装 ${st.index + 1}/${st.total}：<b>${esc(st.current)}</b></div>
+          <div class="apply-bar"><span style="width:${st.total ? Math.round((done / st.total) * 100) : 0}%"></span></div>
+          <div class="apply-log">${(st.results || []).map((r) =>
+            `<div class="${r.ok ? "ok" : "err"}">${r.ok ? "✓" : "✗"} ${esc(r.name)} — ${esc(r.message)}</div>`).join("")}</div>
+        </div>`;
+      } else {
+        clearInterval(diffState.pollTimer);
+        diffState.pollTimer = null;
+        if (st.total) {
+          const okN = (st.results || []).filter((r) => r.ok).length;
+          const failN = st.results.length - okN;
+          box.innerHTML = `<div class="apply-box">
+            <div class="apply-head">安装完成：成功 ${okN} 项${failN ? `，失败 ${failN} 项` : ""}</div>
+            <div class="apply-log">${(st.results || []).map((r) =>
+              `<div class="${r.ok ? "ok" : "err"}">${r.ok ? "✓" : "✗"} ${esc(r.name)} — ${esc(r.message)}</div>`).join("")}</div>
+            <button id="apply-refresh" class="small primary">刷新对比（已重新盘点）</button>
+          </div>`;
+          const rf = $("#apply-refresh");
+          if (rf) rf.addEventListener("click", () => {
+            // 服务端安装完成后已自动重扫，这里同步前端报告
+            fetch("/api/report").then((r) => (r.ok ? r.json() : null)).then((rep) => {
+              if (rep) { report = rep; }
+              diffState.selected.clear();
+              loadDiff();
+            });
+          });
+        }
+      }
+    };
+    diffState.pollTimer = setInterval(tick, 1500);
+    tick();
   }
 
   // ---------- 初始加载 ----------
