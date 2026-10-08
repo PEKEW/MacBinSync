@@ -152,6 +152,32 @@ func gitIn(args ...string) (string, error) {
 	return runCmdLong(context.Background(), "git", full...)
 }
 
+// remoteIsEmpty 判断远端是否为尚无任何提交的空仓库。
+func remoteIsEmpty() bool {
+	out, err := gitIn("ls-remote", "origin", "HEAD")
+	if err != nil {
+		return false
+	}
+	return strings.TrimSpace(out) == ""
+}
+
+// pullTolerable 判断 pull 报错是否属于"远端还没有可合并的 ref"这类可忽略情况。
+func pullTolerable(out string) bool {
+	low := strings.ToLower(out)
+	for _, pat := range []string{
+		"couldn't find remote ref",
+		"no remote ref",
+		"no matching refs",
+		"no such ref was fetched",
+		"does not appear to be a git repository",
+	} {
+		if strings.Contains(low, pat) {
+			return true
+		}
+	}
+	return false
+}
+
 // syncPush 把本机 queue + reports 提交并推送到 GitHub。
 func syncPush() SyncResult {
 	cfg := loadConfig()
@@ -166,12 +192,9 @@ func syncPush() SyncResult {
 	if err := ensureClone(cloneURL); err != nil {
 		return SyncResult{OK: false, Message: err.Error()}
 	}
-	// 先拉取，减少冲突（首次推送/空远端时 pull 失败属正常，忽略）
-	if out, err := gitIn("pull", "--ff-only", "--no-rebase"); err != nil {
-		low := strings.ToLower(out)
-		if !strings.Contains(low, "couldn't find remote ref") &&
-			!strings.Contains(low, "no remote ref") &&
-			!strings.Contains(low, "no matching refs") {
+	// 先拉取，减少冲突；远端为空仓库（首次推送）时跳过
+	if !remoteIsEmpty() {
+		if out, err := gitIn("pull", "--ff-only", "--no-rebase"); err != nil && !pullTolerable(out) {
 			return SyncResult{OK: false, Message: "拉取远端失败: " + firstLine(out)}
 		}
 	}
@@ -217,6 +240,9 @@ func syncPull() SyncResult {
 	setupGitAuth()
 	if err := ensureClone(cloneURL); err != nil {
 		return SyncResult{OK: false, Message: err.Error()}
+	}
+	if remoteIsEmpty() {
+		return SyncResult{OK: false, Message: "远端仓库还没有数据（请先在某台机器点「↑ 推送本机数据」）"}
 	}
 	if out, err := gitIn("pull", "--ff-only", "--no-rebase"); err != nil {
 		return SyncResult{OK: false, Message: "拉取失败: " + firstLine(out)}
